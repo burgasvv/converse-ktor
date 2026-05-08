@@ -1,0 +1,11 @@
+
+
+
+### Security Requests
+
+
+
+###
+GET /api/v1/security/csrf-token
+Host: localhost:9000
+Accept: application/json
