@@ -31,7 +31,6 @@ object DatabaseConnection {
         password = config.property("ktor.postgres.password").getString()
         maximumPoolSize = 20
         minimumIdle = 5
-        isAutoCommit = false
         validate()
     }
 
@@ -120,6 +119,19 @@ object DialogueMessageTable : UUIDTable("dialogue_message") {
     init {
         foreignKey(dialogueFirstCompanionId, dialogueSecondCompanionId, target = DialogueTable.primaryKey)
     }
+}
+
+object DialogueMessageFileTable : Table("dialogue_message_file") {
+    val dialogueMessageId = reference(
+        name = "dialogue_message_id", refColumn = DialogueMessageTable.id,
+        onDelete = ReferenceOption.CASCADE, onUpdate = ReferenceOption.CASCADE
+    )
+    val fileId = reference(
+        name = "file_id", refColumn = FileTable.id,
+        onDelete = ReferenceOption.CASCADE, onUpdate = ReferenceOption.CASCADE
+    )
+    override val primaryKey: PrimaryKey
+        get() = PrimaryKey(arrayOf(dialogueMessageId, fileId))
 }
 
 object ChatTable : UUIDTable("chat") {
@@ -211,6 +223,7 @@ object CommunityIdentityTable : Table("community_identity") {
         name = "identity_id", refColumn = IdentityTable.id,
         onDelete = ReferenceOption.CASCADE, onUpdate = ReferenceOption.CASCADE
     )
+    val admin = bool("admin").default(false)
     override val primaryKey: PrimaryKey
         get() = PrimaryKey(arrayOf(communityId, identityId))
 }
@@ -271,9 +284,9 @@ fun Application.configureDatabase() {
     transaction(db = DatabaseConnection.postgres) {
         SchemaUtils.create(
             FileTable, IdentityTable, IdentityFileTable, IdentityContactTable, DialogueTable,
-            DialogueMessageTable, ChatTable, ChatFileTable, ChatIdentityTable, ChatMessageTable,
-            ChatMessageFileTable, CommunityTable, CommunityFileTable, CommunityIdentityTable, PublicationTable,
-            PublicationFileTable, CommentTable, CommentFileTable
+            DialogueMessageTable, DialogueMessageFileTable, ChatTable, ChatFileTable, ChatIdentityTable,
+            ChatMessageTable, ChatMessageFileTable, CommunityTable, CommunityFileTable, CommunityIdentityTable,
+            PublicationTable, PublicationFileTable, CommentTable, CommentFileTable
         )
     }
 }
