@@ -4,6 +4,10 @@ import io.ktor.http.content.*
 import io.ktor.utils.io.*
 import kotlinx.io.readByteArray
 import org.burgas.database.*
+import org.burgas.dto.Dependency
+import org.burgas.dto.FileResponse
+import org.burgas.dto.Request
+import org.burgas.dto.Response
 import org.jetbrains.exposed.dao.CompositeEntity
 import org.jetbrains.exposed.dao.CompositeEntityClass
 import org.jetbrains.exposed.dao.UUIDEntity
@@ -15,11 +19,25 @@ import java.util.*
 
 interface File
 
+interface Dao
+
 interface Uploader<F : File> {
     suspend fun upload(partData: PartData): F
 }
 
-class FileEntity(id: EntityID<UUID>) : UUIDEntity(id), File, Uploader<FileEntity> {
+interface EntityMapper<R : Request, D : Dao> {
+    suspend fun toEntity(request: R): D
+}
+
+interface DependencyMapper<D : Dependency> {
+    suspend fun toDependency(): D
+}
+
+interface ResponseMapper<F : Response> {
+    suspend fun toResponse(): F
+}
+
+class FileEntity(id: EntityID<UUID>) : UUIDEntity(id), File, Uploader<FileEntity>, ResponseMapper<FileResponse> {
     companion object : UUIDEntityClass<FileEntity>(FileTable)
 
     var name by FileTable.name
@@ -39,9 +57,18 @@ class FileEntity(id: EntityID<UUID>) : UUIDEntity(id), File, Uploader<FileEntity
             throw IllegalArgumentException("Part data not File item")
         }
     }
+
+    override suspend fun toResponse(): FileResponse {
+        return FileResponse(
+            id = this.id.value,
+            name = this.name,
+            contentType = this.contentType,
+            preview = this.preview
+        )
+    }
 }
 
-class IdentityEntity(id: EntityID<UUID>) : UUIDEntity(id) {
+class IdentityEntity(id: EntityID<UUID>) : UUIDEntity(id), Dao {
     companion object : UUIDEntityClass<IdentityEntity>(IdentityTable)
 
     var authority by IdentityTable.authority
@@ -82,7 +109,7 @@ class DialogueMessageEntity(id: EntityID<UUID>) : UUIDEntity(id) {
     var created by DialogueMessageTable.created
 }
 
-class ChatEntity(id: EntityID<UUID>) : UUIDEntity(id) {
+class ChatEntity(id: EntityID<UUID>) : UUIDEntity(id), Dao {
     companion object : UUIDEntityClass<ChatEntity>(ChatTable)
 
     var name by ChatTable.name
@@ -107,7 +134,7 @@ class ChatMessageEntity(id: EntityID<UUID>) : UUIDEntity(id) {
     var files by FileEntity via ChatMessageFileTable
 }
 
-class CommunityEntity(id: EntityID<UUID>) : UUIDEntity(id) {
+class CommunityEntity(id: EntityID<UUID>) : UUIDEntity(id), Dao {
     companion object : UUIDEntityClass<CommunityEntity>(CommunityTable)
 
     var name by CommunityTable.name
