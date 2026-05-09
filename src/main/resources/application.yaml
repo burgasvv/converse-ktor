@@ -16,3 +16,4 @@ ktor:
       - org.burgas.security.SecurityKt.configureSecurity
       - org.burgas.routing.SecurityRouterKt.configureSecurityRouter
       - org.burgas.database.DatabaseKt.configureDatabase
+      - org.burgas.router.FileRouterKt.configureFileRouter

@@ -28,13 +28,13 @@ data class ExceptionResponse(
 )
 
 @Serializable
-data class FileResponse(
+data class FileDependency(
     @Serializable(with = UUIDSerializer::class)
     override val id: UUID?,
     val name: String?,
     val contentType: String?,
     val preview: Boolean?
-) : Response
+) : Dependency
 
 @Serializable
 data class IdentityRequest(
@@ -61,7 +61,8 @@ data class IdentityDependency(
     val firstname: String?,
     val lastname: String?,
     val patronymic: String?,
-    val files: List<FileResponse>?
+    val admin: Boolean?,
+    val files: List<FileDependency>?
 ): Dependency
 
 @Serializable
@@ -74,12 +75,21 @@ data class IdentityResponse(
     val firstname: String?,
     val lastname: String?,
     val patronymic: String?,
-    val files: List<FileResponse>?,
+    val files: List<FileDependency>?,
     val contacts: List<IdentityDependency>?,
-    val dialogues: List<DialogueResponse>?,
+    val dialogues: List<DialogueDependency>?,
     val chats: List<ChatDependency>?,
     val communities: List<CommunityDependency>?
 ): Response
+
+@Serializable
+data class DialogueDependency(
+    @Serializable(with = UUIDSerializer::class)
+    override val id: UUID?,
+    val firstCompanion: IdentityDependency?,
+    val secondCompanion: IdentityDependency?,
+    val created: String?
+) : Dependency
 
 @Serializable
 data class DialogueResponse(
@@ -87,6 +97,7 @@ data class DialogueResponse(
     override val id: UUID?,
     val firstCompanion: IdentityDependency?,
     val secondCompanion: IdentityDependency?,
+    val messages: List<DialogueMessageDependency>?,
     val created: String?
 ) : Response
 
@@ -98,16 +109,29 @@ data class DialogueMessageRequest(
     val firstCompanionId: UUID?,
     @Serializable(with = UUIDSerializer::class)
     val secondCompanionId: UUID?,
+    @Serializable(with = UUIDSerializer::class)
+    val senderId: UUID?,
     val text: String?
 ) : Request
+
+@Serializable
+data class DialogueMessageDependency(
+    @Serializable(with = UUIDSerializer::class)
+    override val id: UUID?,
+    val sender: IdentityDependency?,
+    val text: String?,
+    val files: List<FileDependency>?,
+    val created: String?
+) : Dependency
 
 @Serializable
 data class DialogueMessageResponse(
     @Serializable(with = UUIDSerializer::class)
     override val id: UUID?,
+    val dialogue: DialogueDependency?,
     val sender: IdentityDependency?,
     val text: String?,
-    val files: List<FileResponse>?,
+    val files: List<FileDependency>?,
     val created: String?
 ) : Response
 
@@ -129,7 +153,8 @@ data class ChatDependency(
     val name: String?,
     val description: String?,
     val opened: Boolean?,
-    val files: List<FileResponse>?
+    val created: String?,
+    val files: List<FileDependency>?
 ) : Dependency
 
 @Serializable
@@ -139,7 +164,8 @@ data class ChatResponse(
     val name: String?,
     val description: String?,
     val opened: Boolean?,
-    val files: List<FileResponse>?,
+    val created: String?,
+    val files: List<FileDependency>?,
     val identities: List<IdentityDependency>?
 ) : Response
 
@@ -160,8 +186,8 @@ data class ChatMessageDependency(
     override val id: UUID?,
     val sender: IdentityDependency?,
     val text: String?,
-    val files: List<FileResponse>?,
-    val created: String?
+    val created: String?,
+    val files: List<FileDependency>?
 ) : Dependency
 
 @Serializable
@@ -171,8 +197,8 @@ data class ChatMessageResponse(
     val chatDependency: ChatDependency?,
     val sender: IdentityDependency?,
     val text: String?,
-    val files: List<FileResponse>?,
-    val created: String?
+    val created: String?,
+    val files: List<FileDependency>?
 ) : Response
 
 @Serializable
@@ -193,8 +219,8 @@ data class CommunityDependency(
     val name: String?,
     val description: String?,
     val opened: Boolean?,
-    val files: List<FileResponse>?,
-    val created: String?
+    val created: String?,
+    val files: List<FileDependency>?
 ) : Dependency
 
 @Serializable
@@ -204,9 +230,9 @@ data class CommunityResponse(
     val name: String?,
     val description: String?,
     val opened: Boolean?,
-    val files: List<FileResponse>?,
-    val identities: List<IdentityDependency>?,
-    val created: String?
+    val created: String?,
+    val files: List<FileDependency>?,
+    val identities: List<IdentityDependency>?
 ) : Response
 
 @Serializable
@@ -225,9 +251,9 @@ data class PublicationDependency(
     @Serializable(with = UUIDSerializer::class)
     override val id: UUID?,
     val sender: IdentityDependency,
-    val files: List<FileResponse>?,
     val text: String?,
-    val created: String?
+    val created: String?,
+    val files: List<FileDependency>?
 ) : Dependency
 
 @Serializable
@@ -236,9 +262,9 @@ data class PublicationResponse(
     override val id: UUID?,
     val community: CommunityDependency?,
     val sender: IdentityDependency,
-    val files: List<FileResponse>?,
     val text: String?,
-    val created: String?
+    val created: String?,
+    val files: List<FileDependency>?
 ) : Response
 
 @Serializable
@@ -257,9 +283,9 @@ data class CommentDependency(
     @Serializable(with = UUIDSerializer::class)
     override val id: UUID?,
     val sender: IdentityDependency?,
-    val files: List<FileResponse>?,
     val text: String?,
-    val created: String?
+    val created: String?,
+    val files: List<FileDependency>?
 ) : Dependency
 
 @Serializable
@@ -268,7 +294,7 @@ data class CommentResponse(
     override val id: UUID?,
     val publication: PublicationDependency?,
     val sender: IdentityDependency?,
-    val files: List<FileResponse>?,
     val text: String?,
-    val created: String?
+    val created: String?,
+    val files: List<FileDependency>?
 ) : Response

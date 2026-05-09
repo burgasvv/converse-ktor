@@ -41,6 +41,7 @@ dependencies {
     implementation("org.postgresql:postgresql:42.7.10")
     implementation("com.zaxxer:HikariCP:6.2.1")
     implementation("redis.clients:jedis:5.1.2")
+    implementation("org.mindrot:jbcrypt:0.4")
 
     testImplementation(kotlin("test"))
     testImplementation(ktorLibs.server.testHost)
