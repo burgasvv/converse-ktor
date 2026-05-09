@@ -93,32 +93,34 @@ object IdentityContactTable : Table("identity_contact") {
         get() = PrimaryKey(arrayOf(identityId, contactId))
 }
 
-object DialogueTable : CompositeIdTable("dialogue") {
-    val firstCompanionId = reference(
-        name = "first_companion_id", refColumn = IdentityTable.id,
-        onDelete = ReferenceOption.CASCADE, onUpdate = ReferenceOption.CASCADE
-    )
-    val secondCompanionId = reference(
-        name = "second_companion_id", refColumn = IdentityTable.id,
-        onDelete = ReferenceOption.CASCADE, onUpdate = ReferenceOption.CASCADE
-    )
+object DialogueTable : UUIDTable("dialogue") {
     val created = date("created").defaultExpression(CurrentDate)
+}
+
+object DialogueIdentityTable : Table("dialogue_identity") {
+    val dialogueId = reference(
+        name = "dialogue_id", refColumn = DialogueTable.id,
+        onDelete = ReferenceOption.CASCADE, onUpdate = ReferenceOption.CASCADE
+    )
+    val identityId = reference(
+        name = "identity_id", refColumn = IdentityTable.id,
+        onDelete = ReferenceOption.CASCADE, onUpdate = ReferenceOption.CASCADE
+    )
     override val primaryKey: PrimaryKey
-        get() = PrimaryKey(arrayOf(firstCompanionId, secondCompanionId))
+        get() = PrimaryKey(arrayOf(dialogueId, identityId))
 }
 
 object DialogueMessageTable : UUIDTable("dialogue_message") {
-    val dialogueFirstCompanionId = uuid("dialogue_first_companion_id")
-    val dialogueSecondCompanionId = uuid("dialogue_second_companion_id")
+    val dialogueId = reference(
+        name = "dialogue_id", refColumn = DialogueTable.id,
+        onDelete = ReferenceOption.CASCADE, onUpdate = ReferenceOption.CASCADE
+    )
     val senderId = optReference(
         name = "sender_id", refColumn = IdentityTable.id,
         onDelete = ReferenceOption.CASCADE, onUpdate = ReferenceOption.CASCADE
     )
     val text = text("text")
     val created = datetime("created").defaultExpression(CurrentDateTime)
-    init {
-        foreignKey(dialogueFirstCompanionId, dialogueSecondCompanionId, target = DialogueTable.primaryKey)
-    }
 }
 
 object DialogueMessageFileTable : Table("dialogue_message_file") {
@@ -284,9 +286,9 @@ fun Application.configureDatabase() {
     transaction(db = DatabaseConnection.postgres) {
         SchemaUtils.create(
             FileTable, IdentityTable, IdentityFileTable, IdentityContactTable, DialogueTable,
-            DialogueMessageTable, DialogueMessageFileTable, ChatTable, ChatFileTable, ChatIdentityTable,
-            ChatMessageTable, ChatMessageFileTable, CommunityTable, CommunityFileTable, CommunityIdentityTable,
-            PublicationTable, PublicationFileTable, CommentTable, CommentFileTable
+            DialogueIdentityTable, DialogueMessageTable, DialogueMessageFileTable, ChatTable, ChatFileTable,
+            ChatIdentityTable, ChatMessageTable, ChatMessageFileTable, CommunityTable, CommunityFileTable,
+            CommunityIdentityTable, PublicationTable, PublicationFileTable, CommentTable, CommentFileTable
         )
     }
 }

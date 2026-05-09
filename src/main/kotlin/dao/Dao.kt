@@ -2,6 +2,7 @@ package org.burgas.dao
 
 import io.ktor.http.content.*
 import io.ktor.utils.io.*
+import kotlinx.datetime.toJavaLocalDate
 import kotlinx.datetime.toKotlinLocalDate
 import kotlinx.datetime.toKotlinLocalDateTime
 import kotlinx.io.readByteArray
@@ -14,12 +15,14 @@ import org.jetbrains.exposed.dao.UUIDEntity
 import org.jetbrains.exposed.dao.UUIDEntityClass
 import org.jetbrains.exposed.dao.id.CompositeID
 import org.jetbrains.exposed.dao.id.EntityID
+import org.jetbrains.exposed.sql.SizedCollection
 import org.jetbrains.exposed.sql.and
 import org.jetbrains.exposed.sql.selectAll
 import org.jetbrains.exposed.sql.statements.api.ExposedBlob
 import org.mindrot.jbcrypt.BCrypt
 import java.time.LocalDate
 import java.time.LocalDateTime
+import java.time.format.DateTimeFormatter
 import java.util.*
 
 interface File
@@ -78,7 +81,7 @@ class FileEntity(id: EntityID<UUID>) : UUIDEntity(id), File, Uploader<FileEntity
 }
 
 class IdentityEntity(id: EntityID<UUID>) : UUIDEntity(id), Dao, DesignEntity<IdentityRequest>,
-    ModifyEntity<IdentityRequest> {
+    ModifyEntity<IdentityRequest>, ResponseMapper<IdentityResponse>, DependencyMapper<IdentityDependency> {
     companion object : UUIDEntityClass<IdentityEntity>(IdentityTable)
 
     var authority by IdentityTable.authority
@@ -126,11 +129,73 @@ class IdentityEntity(id: EntityID<UUID>) : UUIDEntity(id), Dao, DesignEntity<Ide
         this.lastname = request.lastname ?: this.lastname
         this.patronymic = request.patronymic ?: this.patronymic
     }
+
+    suspend fun toIdentityInChat(chatId: UUID): IdentityDependency {
+        val chatIdentity = ChatIdentityTable.selectAll()
+            .where { (ChatIdentityTable.identityId eq id.value) and (ChatIdentityTable.chatId eq chatId) }
+            .single()
+        return IdentityDependency(
+            id = this.id.value,
+            username = this.username,
+            email = this.email,
+            phone = this.phone,
+            firstname = this.firstname,
+            lastname = this.lastname,
+            patronymic = this.patronymic,
+            admin = chatIdentity[ChatIdentityTable.admin],
+            files = this.files.map { it.toDependency() }
+        )
+    }
+
+    suspend fun toIdentityInCommunity(communityId: UUID): IdentityDependency {
+        val communityIdentity = CommunityIdentityTable.selectAll()
+            .where { (CommunityIdentityTable.communityId eq communityId) and (CommunityIdentityTable.identityId eq id.value) }
+            .single()
+        return IdentityDependency(
+            id = this.id.value,
+            username = this.username,
+            email = this.email,
+            phone = this.phone,
+            firstname = this.firstname,
+            lastname = this.lastname,
+            patronymic = this.patronymic,
+            admin = communityIdentity[CommunityIdentityTable.admin],
+            files = this.files.map { it.toDependency() }
+        )
+    }
+
+    override suspend fun toDependency(): IdentityDependency {
+        return IdentityDependency(
+            id = this.id.value,
+            username = this.username,
+            email = this.email,
+            phone = this.phone,
+            firstname = this.firstname,
+            lastname = this.lastname,
+            patronymic = this.patronymic,
+            files = this.files.map { it.toDependency() }
+        )
+    }
+
+    override suspend fun toResponse(): IdentityResponse {
+        return IdentityResponse(
+            id = this.id.value,
+            username = this.username,
+            email = this.email,
+            phone = this.phone,
+            firstname = this.firstname,
+            lastname = this.lastname,
+            patronymic = this.patronymic,
+            files = this.files.map { it.toDependency() },
+            contacts = this.contacts.map { it.toDependency() }
+        )
+    }
 }
 
-class DialogueEntity(id: EntityID<CompositeID>) : CompositeEntity(id) {
-    companion object : CompositeEntityClass<DialogueEntity>(DialogueTable)
+class DialogueEntity(id: EntityID<UUID>) : UUIDEntity(id) {
+    companion object : UUIDEntityClass<DialogueEntity>(DialogueTable)
 
+    var identities by IdentityEntity via DialogueIdentityTable
     val messages by DialogueMessageEntity referrersOn DialogueMessageTable
 
     var created by DialogueTable.created
@@ -150,22 +215,16 @@ class DialogueMessageEntity(id: EntityID<UUID>) : UUIDEntity(id), Dao, DesignEnt
 
     override suspend fun insert(request: DialogueMessageRequest) {
         if (request.firstCompanionId!! == request.secondCompanionId!!) throw IllegalArgumentException("Wrong dialogue identities")
-        val compositeId = CompositeID {
-            it[DialogueTable.firstCompanionId] = request.firstCompanionId
-            it[DialogueTable.secondCompanionId] = request.secondCompanionId
-        }
-        val wrongCompositeId = CompositeID {
-            it[DialogueTable.firstCompanionId] = request.secondCompanionId
-            it[DialogueTable.secondCompanionId] = request.firstCompanionId
-        }
-        val wrongDialogue = DialogueEntity.findById(wrongCompositeId)
-        wrongDialogue?.delete()
-        val dialogueEntity = DialogueEntity.findById(compositeId) ?: DialogueEntity.new(compositeId) {
+        val dialogueEntity = DialogueEntity.findById(request.dialogueId ?: UUID(0,0)) ?: DialogueEntity.new {
             this.created = LocalDate.now().toKotlinLocalDate()
+            val firstCompanion = IdentityEntity.findById(request.firstCompanionId)!!
+            val secondCompanion = IdentityEntity.findById(request.secondCompanionId)!!
+            this.identities = SizedCollection(firstCompanion, secondCompanion)
         }
         this.dialogue = dialogueEntity
-        if (request.senderId!! == request.firstCompanionId || request.senderId == request.secondCompanionId) {
-            this.sender = IdentityEntity.findById(request.senderId)!!
+        val sender = IdentityEntity.findById(request.senderId!!)!!
+        if (dialogueEntity.identities.contains(sender)) {
+            this.sender = sender
         } else {
             throw IllegalArgumentException("This sender not in this dialogue")
         }

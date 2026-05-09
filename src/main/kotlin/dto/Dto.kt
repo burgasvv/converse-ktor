@@ -30,271 +30,271 @@ data class ExceptionResponse(
 @Serializable
 data class FileDependency(
     @Serializable(with = UUIDSerializer::class)
-    override val id: UUID?,
-    val name: String?,
-    val contentType: String?,
-    val preview: Boolean?
+    override val id: UUID? = null,
+    val name: String? = null,
+    val contentType: String? = null,
+    val preview: Boolean? = null
 ) : Dependency
 
 @Serializable
 data class IdentityRequest(
     @Serializable(with = UUIDSerializer::class)
-    override val id: UUID?,
-    val authority: Authority?,
-    val username: String?,
-    val password: String?,
-    val email: String?,
-    val phone: String?,
-    val status: Boolean?,
-    val firstname: String?,
-    val lastname: String?,
-    val patronymic: String?
+    override val id: UUID? = null,
+    val authority: Authority? = null,
+    val username: String? = null,
+    val password: String? = null,
+    val email: String? = null,
+    val phone: String? = null,
+    val status: Boolean? = null,
+    val firstname: String? = null,
+    val lastname: String? = null,
+    val patronymic: String? = null
 ): Request
 
 @Serializable
 data class IdentityDependency(
     @Serializable(with = UUIDSerializer::class)
-    override val id: UUID?,
-    val username: String?,
-    val email: String?,
-    val phone: String?,
-    val firstname: String?,
-    val lastname: String?,
-    val patronymic: String?,
-    val admin: Boolean?,
-    val files: List<FileDependency>?
+    override val id: UUID? = null,
+    val username: String? = null,
+    val email: String? = null,
+    val phone: String? = null,
+    val firstname: String? = null,
+    val lastname: String? = null,
+    val patronymic: String? = null,
+    val admin: Boolean? = null,
+    val files: List<FileDependency>? = null
 ): Dependency
 
 @Serializable
 data class IdentityResponse(
     @Serializable(with = UUIDSerializer::class)
-    override val id: UUID?,
-    val username: String?,
-    val email: String?,
-    val phone: String?,
-    val firstname: String?,
-    val lastname: String?,
-    val patronymic: String?,
-    val files: List<FileDependency>?,
-    val contacts: List<IdentityDependency>?,
-    val dialogues: List<DialogueDependency>?,
-    val chats: List<ChatDependency>?,
-    val communities: List<CommunityDependency>?
+    override val id: UUID? = null,
+    val username: String? = null,
+    val email: String? = null,
+    val phone: String? = null,
+    val firstname: String? = null,
+    val lastname: String? = null,
+    val patronymic: String? = null,
+    val files: List<FileDependency>? = null,
+    val contacts: List<IdentityDependency>? = null,
+    val dialogues: List<DialogueDependency>? = null,
+    val chats: List<ChatDependency>? = null,
+    val communities: List<CommunityDependency>? = null
 ): Response
 
 @Serializable
 data class DialogueDependency(
-    @Serializable(with = UUIDSerializer::class)
-    override val id: UUID?,
-    val firstCompanion: IdentityDependency?,
-    val secondCompanion: IdentityDependency?,
-    val created: String?
-) : Dependency
+    val firstCompanion: IdentityDependency? = null,
+    val secondCompanion: IdentityDependency? = null,
+    val created: String? = null
+)
 
 @Serializable
 data class DialogueResponse(
     @Serializable(with = UUIDSerializer::class)
-    override val id: UUID?,
-    val firstCompanion: IdentityDependency?,
-    val secondCompanion: IdentityDependency?,
-    val messages: List<DialogueMessageDependency>?,
-    val created: String?
+    override val id: UUID? = null,
+    val firstCompanion: IdentityDependency? = null,
+    val secondCompanion: IdentityDependency? = null,
+    val messages: List<DialogueMessageDependency>? = null,
+    val created: String? = null
 ) : Response
 
 @Serializable
 data class DialogueMessageRequest(
     @Serializable(with = UUIDSerializer::class)
-    override val id: UUID?,
+    override val id: UUID? = null,
     @Serializable(with = UUIDSerializer::class)
-    val firstCompanionId: UUID?,
+    val dialogueId: UUID? = null,
     @Serializable(with = UUIDSerializer::class)
-    val secondCompanionId: UUID?,
+    val firstCompanionId: UUID? = null,
     @Serializable(with = UUIDSerializer::class)
-    val senderId: UUID?,
-    val text: String?
+    val secondCompanionId: UUID? = null,
+    @Serializable(with = UUIDSerializer::class)
+    val senderId: UUID? = null,
+    val text: String? = null
 ) : Request
 
 @Serializable
 data class DialogueMessageDependency(
     @Serializable(with = UUIDSerializer::class)
-    override val id: UUID?,
-    val sender: IdentityDependency?,
-    val text: String?,
-    val files: List<FileDependency>?,
-    val created: String?
+    override val id: UUID? = null,
+    val sender: IdentityDependency? = null,
+    val text: String? = null,
+    val files: List<FileDependency>? = null,
+    val created: String? = null
 ) : Dependency
 
 @Serializable
 data class DialogueMessageResponse(
     @Serializable(with = UUIDSerializer::class)
-    override val id: UUID?,
-    val dialogue: DialogueDependency?,
-    val sender: IdentityDependency?,
-    val text: String?,
-    val files: List<FileDependency>?,
-    val created: String?
+    override val id: UUID? = null,
+    val dialogue: DialogueDependency? = null,
+    val sender: IdentityDependency? = null,
+    val text: String? = null,
+    val files: List<FileDependency>? = null,
+    val created: String? = null
 ) : Response
 
 @Serializable
 data class ChatRequest(
     @Serializable(with = UUIDSerializer::class)
-    override val id: UUID?,
-    val name: String?,
-    val description: String?,
-    val opened: Boolean?,
+    override val id: UUID? = null,
+    val name: String? = null,
+    val description: String? = null,
+    val opened: Boolean? = null,
     @Serializable(with = UUIDSerializer::class)
-    val adminId: UUID?
+    val adminId: UUID? = null
 ) : Request
 
 @Serializable
 data class ChatDependency(
     @Serializable(with = UUIDSerializer::class)
-    override val id: UUID?,
-    val name: String?,
-    val description: String?,
-    val opened: Boolean?,
-    val created: String?,
-    val files: List<FileDependency>?
+    override val id: UUID? = null,
+    val name: String? = null,
+    val description: String? = null,
+    val opened: Boolean? = null,
+    val created: String? = null,
+    val files: List<FileDependency>? = null
 ) : Dependency
 
 @Serializable
 data class ChatResponse(
     @Serializable(with = UUIDSerializer::class)
-    override val id: UUID?,
-    val name: String?,
-    val description: String?,
-    val opened: Boolean?,
-    val created: String?,
-    val files: List<FileDependency>?,
-    val identities: List<IdentityDependency>?
+    override val id: UUID? = null,
+    val name: String? = null,
+    val description: String? = null,
+    val opened: Boolean? = null,
+    val created: String? = null,
+    val files: List<FileDependency>? = null,
+    val identities: List<IdentityDependency>? = null
 ) : Response
 
 @Serializable
 data class ChatMessageRequest(
     @Serializable(with = UUIDSerializer::class)
-    override val id: UUID?,
+    override val id: UUID? = null,
     @Serializable(with = UUIDSerializer::class)
-    val chatId: UUID?,
+    val chatId: UUID? = null,
     @Serializable(with = UUIDSerializer::class)
-    val senderId: UUID?,
-    val text: String?
+    val senderId: UUID? = null,
+    val text: String? = null
 ) : Request
 
 @Serializable
 data class ChatMessageDependency(
     @Serializable(with = UUIDSerializer::class)
-    override val id: UUID?,
-    val sender: IdentityDependency?,
-    val text: String?,
-    val created: String?,
-    val files: List<FileDependency>?
+    override val id: UUID? = null,
+    val sender: IdentityDependency? = null,
+    val text: String? = null,
+    val created: String? = null,
+    val files: List<FileDependency>? = null
 ) : Dependency
 
 @Serializable
 data class ChatMessageResponse(
     @Serializable(with = UUIDSerializer::class)
-    override val id: UUID?,
-    val chatDependency: ChatDependency?,
-    val sender: IdentityDependency?,
-    val text: String?,
-    val created: String?,
-    val files: List<FileDependency>?
+    override val id: UUID? = null,
+    val chatDependency: ChatDependency? = null,
+    val sender: IdentityDependency? = null,
+    val text: String? = null,
+    val created: String? = null,
+    val files: List<FileDependency>? = null
 ) : Response
 
 @Serializable
 data class CommunityRequest(
     @Serializable(with = UUIDSerializer::class)
-    override val id: UUID?,
+    override val id: UUID? = null,
     @Serializable(with = UUIDSerializer::class)
-    val adminId: UUID?,
-    val name: String?,
-    val description: String?,
-    val opened: Boolean?
+    val adminId: UUID? = null,
+    val name: String? = null,
+    val description: String? = null,
+    val opened: Boolean? = null
 ) : Request
 
 @Serializable
 data class CommunityDependency(
     @Serializable(with = UUIDSerializer::class)
-    override val id: UUID?,
-    val name: String?,
-    val description: String?,
-    val opened: Boolean?,
-    val created: String?,
-    val files: List<FileDependency>?
+    override val id: UUID? = null,
+    val name: String? = null,
+    val description: String? = null,
+    val opened: Boolean? = null,
+    val created: String? = null,
+    val files: List<FileDependency>? = null
 ) : Dependency
 
 @Serializable
 data class CommunityResponse(
     @Serializable(with = UUIDSerializer::class)
-    override val id: UUID?,
-    val name: String?,
-    val description: String?,
-    val opened: Boolean?,
-    val created: String?,
-    val files: List<FileDependency>?,
-    val identities: List<IdentityDependency>?
+    override val id: UUID? = null,
+    val name: String? = null,
+    val description: String? = null,
+    val opened: Boolean? = null,
+    val created: String? = null,
+    val files: List<FileDependency>? = null,
+    val identities: List<IdentityDependency>? = null
 ) : Response
 
 @Serializable
 data class PublicationRequest(
     @Serializable(with = UUIDSerializer::class)
-    override val id: UUID?,
+    override val id: UUID? = null,
     @Serializable(with = UUIDSerializer::class)
-    val communityId: UUID?,
+    val communityId: UUID? = null,
     @Serializable(with = UUIDSerializer::class)
-    val senderId: UUID?,
-    val text: String?
+    val senderId: UUID? = null,
+    val text: String? = null
 ) : Request
 
 @Serializable
 data class PublicationDependency(
     @Serializable(with = UUIDSerializer::class)
-    override val id: UUID?,
-    val sender: IdentityDependency,
-    val text: String?,
-    val created: String?,
-    val files: List<FileDependency>?
+    override val id: UUID? = null,
+    val sender: IdentityDependency? = null,
+    val text: String? = null,
+    val created: String? = null,
+    val files: List<FileDependency>? = null
 ) : Dependency
 
 @Serializable
 data class PublicationResponse(
     @Serializable(with = UUIDSerializer::class)
-    override val id: UUID?,
-    val community: CommunityDependency?,
-    val sender: IdentityDependency,
-    val text: String?,
-    val created: String?,
-    val files: List<FileDependency>?
+    override val id: UUID? = null,
+    val community: CommunityDependency? = null,
+    val sender: IdentityDependency? = null,
+    val text: String? = null,
+    val created: String? = null,
+    val files: List<FileDependency>? = null
 ) : Response
 
 @Serializable
 data class CommentRequest(
     @Serializable(with = UUIDSerializer::class)
-    override val id: UUID?,
+    override val id: UUID? = null,
     @Serializable(with = UUIDSerializer::class)
-    val publicationId: UUID?,
+    val publicationId: UUID? = null,
     @Serializable(with = UUIDSerializer::class)
-    val senderId: UUID?,
-    val text: String?
+    val senderId: UUID? = null,
+    val text: String? = null
 ) : Request
 
 @Serializable
 data class CommentDependency(
     @Serializable(with = UUIDSerializer::class)
-    override val id: UUID?,
-    val sender: IdentityDependency?,
-    val text: String?,
-    val created: String?,
-    val files: List<FileDependency>?
+    override val id: UUID? = null,
+    val sender: IdentityDependency? = null,
+    val text: String? = null,
+    val created: String? = null,
+    val files: List<FileDependency>? = null
 ) : Dependency
 
 @Serializable
 data class CommentResponse(
     @Serializable(with = UUIDSerializer::class)
-    override val id: UUID?,
-    val publication: PublicationDependency?,
-    val sender: IdentityDependency?,
-    val text: String?,
-    val created: String?,
-    val files: List<FileDependency>?
+    override val id: UUID? = null,
+    val publication: PublicationDependency? = null,
+    val sender: IdentityDependency? = null,
+    val text: String? = null,
+    val created: String? = null,
+    val files: List<FileDependency>? = null
 ) : Response
