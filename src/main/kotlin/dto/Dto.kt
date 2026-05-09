@@ -84,17 +84,17 @@ data class IdentityResponse(
 
 @Serializable
 data class DialogueDependency(
-    val firstCompanion: IdentityDependency? = null,
-    val secondCompanion: IdentityDependency? = null,
+    @Serializable(with = UUIDSerializer::class)
+    override val id: UUID? = null,
+    val identities: List<IdentityDependency>? = null,
     val created: String? = null
-)
+) : Dependency
 
 @Serializable
 data class DialogueResponse(
     @Serializable(with = UUIDSerializer::class)
     override val id: UUID? = null,
-    val firstCompanion: IdentityDependency? = null,
-    val secondCompanion: IdentityDependency? = null,
+    val identities: List<IdentityDependency>? = null,
     val messages: List<DialogueMessageDependency>? = null,
     val created: String? = null
 ) : Response

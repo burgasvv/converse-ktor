@@ -204,7 +204,7 @@ class DialogueEntity(id: EntityID<UUID>) : UUIDEntity(id) {
 class DialogueMessageEntity(id: EntityID<UUID>) : UUIDEntity(id), Dao, DesignEntity<DialogueMessageRequest> {
     companion object : UUIDEntityClass<DialogueMessageEntity>(DialogueMessageTable)
 
-    var dialogue by DialogueEntity referencedOn DialogueMessageTable
+    var dialogue by DialogueEntity referencedOn DialogueMessageTable.dialogueId
     var sender by IdentityEntity optionalReferencedOn DialogueMessageTable.senderId
 
     var text by DialogueMessageTable.text
