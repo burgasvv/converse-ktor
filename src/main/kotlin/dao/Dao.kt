@@ -214,8 +214,8 @@ class DialogueMessageEntity(id: EntityID<UUID>) : UUIDEntity(id), Dao, DesignEnt
     var created by DialogueMessageTable.created
 
     override suspend fun insert(request: DialogueMessageRequest) {
-        if (request.firstCompanionId!! == request.secondCompanionId!!) throw IllegalArgumentException("Wrong dialogue identities")
         val dialogueEntity = DialogueEntity.findById(request.dialogueId ?: UUID(0,0)) ?: DialogueEntity.new {
+            if (request.firstCompanionId!! == request.secondCompanionId!!) throw IllegalArgumentException("Wrong dialogue identities")
             this.created = LocalDate.now().toKotlinLocalDate()
             val firstCompanion = IdentityEntity.findById(request.firstCompanionId)!!
             val secondCompanion = IdentityEntity.findById(request.secondCompanionId)!!
