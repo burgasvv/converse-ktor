@@ -102,9 +102,9 @@ class IdentityEntity(id: EntityID<UUID>) : UUIDEntity(id), Dao, DesignEntity<Ide
         this.authority = request.authority ?: Authority.USER
         this.username = request.username!!
         this.password = BCrypt.hashpw(request.password!!, BCrypt.gensalt())
-        this.email = if (RegexType.emailRegex.matches(request.email!!))
+        this.email = if (RegexType.email.matches(request.email!!))
             request.email else throw IllegalArgumentException("Email not matched")
-        this.phone = if (RegexType.phoneRegex.matches(request.phone!!))
+        this.phone = if (RegexType.phone.matches(request.phone!!))
             request.phone else throw IllegalArgumentException("Phone not matched")
         this.status = request.status ?: true
         this.firstname = request.firstname!!
@@ -116,11 +116,11 @@ class IdentityEntity(id: EntityID<UUID>) : UUIDEntity(id), Dao, DesignEntity<Ide
         this.authority = request.authority ?: this.authority
         this.username = request.username ?: this.username
         if (request.email != null) {
-            this.email = if (RegexType.emailRegex.matches(request.email))
+            this.email = if (RegexType.email.matches(request.email))
                 request.email else throw IllegalArgumentException("Email not matched")
         }
         if (request.phone != null) {
-            this.phone = if (RegexType.phoneRegex.matches(request.phone))
+            this.phone = if (RegexType.phone.matches(request.phone))
                 request.phone else throw IllegalArgumentException("Phone not matched")
         }
         this.firstname = request.firstname ?: this.firstname

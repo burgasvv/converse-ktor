@@ -14,6 +14,6 @@ ktor:
     modules:
       - org.burgas.serialization.SerializationKt.configureSerialization
       - org.burgas.security.SecurityKt.configureSecurity
-      - org.burgas.routing.SecurityRouterKt.configureSecurityRouter
       - org.burgas.database.DatabaseKt.configureDatabase
+      - org.burgas.router.SecurityRouterKt.configureSecurityRouter
       - org.burgas.router.FileRouterKt.configureFileRouter

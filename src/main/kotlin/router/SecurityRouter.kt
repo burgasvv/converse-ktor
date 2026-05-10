@@ -1,4 +1,4 @@
-package org.burgas.routing
+package org.burgas.router
 
 import io.ktor.http.HttpStatusCode
 import io.ktor.server.application.Application
