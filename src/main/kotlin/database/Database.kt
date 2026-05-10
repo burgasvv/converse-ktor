@@ -57,7 +57,7 @@ enum class Authority {
 object IdentityTable : UUIDTable("identity") {
     val authority = enumerationByName<Authority>("authority", 250)
     val username = varchar("username", 250).uniqueIndex()
-    val password = varchar("password", 50)
+    val password = varchar("password", 250)
     val email = varchar("email", 250).uniqueIndex()
     val phone = varchar("phone", 25).uniqueIndex()
     val status = bool("status").default(true)

@@ -61,16 +61,16 @@ fun Application.configureSecurity() {
         cookie<CsrfToken>("CSRF_TOKEN")
     }
 
-    install(StatusPages) {
-        exception<Throwable> { call, cause ->
-            val exceptionResponse = ExceptionResponse(
-                status = HttpStatusCode.BadRequest.description,
-                code = HttpStatusCode.BadRequest.value,
-                message = cause.localizedMessage
-            )
-            call.respond(HttpStatusCode.BadRequest, exceptionResponse)
-        }
-    }
+//    install(StatusPages) {
+//        exception<Throwable> { call, cause ->
+//            val exceptionResponse = ExceptionResponse(
+//                status = HttpStatusCode.BadRequest.description,
+//                code = HttpStatusCode.BadRequest.value,
+//                message = cause.localizedMessage
+//            )
+//            call.respond(HttpStatusCode.BadRequest, exceptionResponse)
+//        }
+//    }
 
     install(CORS) {
         allowMethod(HttpMethod.Options)

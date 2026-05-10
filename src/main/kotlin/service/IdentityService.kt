@@ -8,6 +8,7 @@ import kotlinx.serialization.json.Json
 import org.burgas.dao.FileEntity
 import org.burgas.dao.IdentityEntity
 import org.burgas.database.DatabaseConnection
+import org.burgas.database.IdentityContactTable
 import org.burgas.dto.FileRequest
 import org.burgas.dto.IdentityRequest
 import org.burgas.dto.IdentityResponse
@@ -17,6 +18,9 @@ import org.burgas.service.dao.*
 import org.jetbrains.exposed.dao.load
 import org.jetbrains.exposed.dao.with
 import org.jetbrains.exposed.sql.SizedCollection
+import org.jetbrains.exposed.sql.SqlExpressionBuilder.eq
+import org.jetbrains.exposed.sql.and
+import org.jetbrains.exposed.sql.deleteWhere
 import org.jetbrains.exposed.sql.transactions.experimental.newSuspendedTransaction
 import java.sql.Connection
 import java.util.*
@@ -173,7 +177,8 @@ class IdentityService : RedisCacheHandler<IdentityEntity>, ReadDao<UUID, Identit
         ) {
             val partData = multiPartData.readPart()!!
             entity.files.filter { it.preview }.forEach { it.preview = false }
-            fileService.createPreview(partData)
+            val fileEntity = fileService.createPreview(partData)
+            entity.files = SizedCollection(entity.files + fileEntity)
             handleCache(entity)
         }
 
@@ -183,9 +188,10 @@ class IdentityService : RedisCacheHandler<IdentityEntity>, ReadDao<UUID, Identit
         transactionIsolation = Connection.TRANSACTION_READ_COMMITTED
     ) {
         val fileEntity = fileService.findEntity(imageId)
-        if (entity.files.contains(fileEntity)) {
+        if (entity.files.map { it.id.value }.contains(fileEntity.id.value)) {
             entity.files.filter { it.preview }.forEach { it.preview = false }
             fileService.makePreview(fileEntity)
+            handleCache(entity)
             return@newSuspendedTransaction
         } else {
             throw IllegalArgumentException("File not in identity file list")
@@ -202,6 +208,8 @@ class IdentityService : RedisCacheHandler<IdentityEntity>, ReadDao<UUID, Identit
         val contactEntity = findEntity(contactId)
         identityEntity.contacts = SizedCollection(identityEntity.contacts + contactEntity)
         contactEntity.contacts = SizedCollection(contactEntity.contacts + identityEntity)
+        handleCache(identityEntity)
+        handleCache(contactEntity)
     }
 
     suspend fun removeContact(identityId: UUID, contactId: UUID) = newSuspendedTransaction(
@@ -212,7 +220,15 @@ class IdentityService : RedisCacheHandler<IdentityEntity>, ReadDao<UUID, Identit
         if (identityId == contactId) throw IllegalArgumentException("Wrong contact id")
         val identityEntity = findEntity(identityId)
         val contactEntity = findEntity(contactId)
-        identityEntity.contacts = SizedCollection(identityEntity.contacts - contactEntity)
-        contactEntity.contacts = SizedCollection(contactEntity.contacts - identityEntity)
+        IdentityContactTable.deleteWhere {
+            (IdentityContactTable.identityId eq identityEntity.id.value) and
+                    (IdentityContactTable.contactId eq contactEntity.id.value)
+        }
+        IdentityContactTable.deleteWhere {
+            (IdentityContactTable.identityId eq contactEntity.id.value) and
+                    (IdentityContactTable.contactId eq identityEntity.id.value)
+        }
+        handleCache(identityEntity)
+        handleCache(contactEntity)
     }
 }

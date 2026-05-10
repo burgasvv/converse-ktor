@@ -93,7 +93,7 @@ class IdentityEntity(id: EntityID<UUID>) : UUIDEntity(id), Dao, DesignEntity<Ide
     var patronymic by IdentityTable.patronymic
 
     var files by FileEntity via IdentityFileTable
-    var contacts by IdentityEntity via IdentityContactTable
+    var contacts by IdentityEntity.via(IdentityContactTable.identityId, IdentityContactTable.contactId)
     val dialogues by DialogueEntity via DialogueIdentityTable
     var chats by ChatEntity via ChatIdentityTable
     var communities by CommunityEntity via CommunityIdentityTable
