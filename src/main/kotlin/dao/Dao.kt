@@ -92,11 +92,16 @@ class IdentityEntity(id: EntityID<UUID>) : UUIDEntity(id), Dao, DesignEntity<Ide
     var lastname by IdentityTable.lastname
     var patronymic by IdentityTable.patronymic
 
-    var files by FileEntity via IdentityFileTable
-    var contacts by IdentityEntity.via(IdentityContactTable.identityId, IdentityContactTable.contactId)
-    val dialogues by DialogueEntity via DialogueIdentityTable
-    var chats by ChatEntity via ChatIdentityTable
-    var communities by CommunityEntity via CommunityIdentityTable
+    var files by FileEntity
+        .via(IdentityFileTable.identityId, IdentityFileTable.fileId)
+    var contacts by IdentityEntity
+        .via(IdentityContactTable.identityId, IdentityContactTable.contactId)
+    var dialogues by DialogueEntity
+        .via(DialogueIdentityTable.identityId, DialogueIdentityTable.dialogueId)
+    var chats by ChatEntity
+        .via(ChatIdentityTable.identityId, ChatIdentityTable.chatId)
+    var communities by CommunityEntity
+        .via(CommunityIdentityTable.identityId, CommunityIdentityTable.communityId)
 
     override fun insert(request: IdentityRequest) {
         this.authority = request.authority ?: Authority.USER
@@ -193,11 +198,13 @@ class IdentityEntity(id: EntityID<UUID>) : UUIDEntity(id), Dao, DesignEntity<Ide
     }
 }
 
-class DialogueEntity(id: EntityID<UUID>) : UUIDEntity(id), Dao, DependencyMapper<DialogueDependency>, ResponseMapper<DialogueResponse> {
+class DialogueEntity(id: EntityID<UUID>) : UUIDEntity(id), Dao, DependencyMapper<DialogueDependency>,
+    ResponseMapper<DialogueResponse> {
     companion object : UUIDEntityClass<DialogueEntity>(DialogueTable)
 
-    var identities by IdentityEntity via DialogueIdentityTable
-    val messages by DialogueMessageEntity referrersOn DialogueMessageTable
+    var identities by IdentityEntity
+        .via(DialogueIdentityTable.dialogueId, DialogueIdentityTable.dialogueId)
+    val messages by DialogueMessageEntity.referrersOn(DialogueMessageTable.dialogueId)
 
     var created by DialogueTable.created
 
@@ -223,17 +230,18 @@ class DialogueMessageEntity(id: EntityID<UUID>) : UUIDEntity(id), Dao, DesignEnt
     DependencyMapper<DialogueMessageDependency>, ResponseMapper<DialogueMessageResponse> {
     companion object : UUIDEntityClass<DialogueMessageEntity>(DialogueMessageTable)
 
-    var dialogue by DialogueEntity referencedOn DialogueMessageTable.dialogueId
-    var sender by IdentityEntity optionalReferencedOn DialogueMessageTable.senderId
+    var dialogue by DialogueEntity.referencedOn(DialogueMessageTable.dialogueId)
+    var sender by IdentityEntity.optionalReferencedOn(DialogueMessageTable.senderId)
 
     var text by DialogueMessageTable.text
 
-    var files by FileEntity via DialogueMessageFileTable
+    var files by FileEntity
+        .via(DialogueMessageFileTable.dialogueMessageId, DialogueMessageFileTable.fileId)
 
     var created by DialogueMessageTable.created
 
     override fun insert(request: DialogueMessageRequest) {
-        val dialogueEntity = DialogueEntity.findById(request.dialogueId ?: UUID(0,0)) ?: DialogueEntity.new {
+        val dialogueEntity = DialogueEntity.findById(request.dialogueId ?: UUID(0, 0)) ?: DialogueEntity.new {
             if (request.firstCompanionId!! == request.secondCompanionId!!) throw IllegalArgumentException("Wrong dialogue identities")
             this.created = LocalDate.now().toKotlinLocalDate()
             val firstCompanion = IdentityEntity.findById(request.firstCompanionId)!!
@@ -282,9 +290,10 @@ class ChatEntity(id: EntityID<UUID>) : UUIDEntity(id), Dao, DesignEntity<ChatReq
     var created by ChatTable.created
     var opened by ChatTable.opened
 
-    var files by FileEntity via ChatFileTable
-    var identities by IdentityEntity via ChatIdentityTable
-    val messages by ChatMessageEntity referrersOn ChatMessageTable.chatId
+    var files by FileEntity.via(ChatFileTable.chatId, ChatFileTable.fileId)
+    var identities by IdentityEntity
+        .via(ChatIdentityTable.chatId, ChatIdentityTable.identityId)
+    val messages by ChatMessageEntity.referrersOn(ChatMessageTable.chatId)
 
     override fun insert(request: ChatRequest) {
         this.name = request.name!!
@@ -334,13 +343,14 @@ class ChatMessageEntity(id: EntityID<UUID>) : UUIDEntity(id), Dao, DesignEntity<
     DependencyMapper<ChatMessageDependency>, ResponseMapper<ChatMessageResponse> {
     companion object : UUIDEntityClass<ChatMessageEntity>(ChatMessageTable)
 
-    var chat by ChatEntity referencedOn ChatMessageTable.chatId
-    var sender by IdentityEntity optionalReferencedOn ChatMessageTable.senderId
+    var chat by ChatEntity.referencedOn(ChatMessageTable.chatId)
+    var sender by IdentityEntity.optionalReferencedOn(ChatMessageTable.senderId)
 
     var text by ChatMessageTable.text
     var created by ChatMessageTable.created
 
-    var files by FileEntity via ChatMessageFileTable
+    var files by FileEntity
+        .via(ChatMessageFileTable.chatMessageId, ChatMessageFileTable.fileId)
 
     override fun insert(request: ChatMessageRequest) {
         this.chat = ChatEntity.findById(request.chatId!!)!!
@@ -371,7 +381,8 @@ class ChatMessageEntity(id: EntityID<UUID>) : UUIDEntity(id), Dao, DesignEntity<
     }
 }
 
-class CommunityEntity(id: EntityID<UUID>) : UUIDEntity(id), Dao, DesignEntity<CommunityRequest>, ModifyEntity<CommunityRequest>,
+class CommunityEntity(id: EntityID<UUID>) : UUIDEntity(id), Dao, DesignEntity<CommunityRequest>,
+    ModifyEntity<CommunityRequest>,
     DependencyMapper<CommunityDependency>, ResponseMapper<CommunityResponse> {
     companion object : UUIDEntityClass<CommunityEntity>(CommunityTable)
 
@@ -380,9 +391,11 @@ class CommunityEntity(id: EntityID<UUID>) : UUIDEntity(id), Dao, DesignEntity<Co
     var opened by CommunityTable.opened
     var created by CommunityTable.created
 
-    var files by FileEntity via CommunityFileTable
-    var identities by IdentityEntity via CommunityIdentityTable
-    val publications by PublicationEntity referrersOn PublicationTable.communityId
+    var files by FileEntity
+        .via(CommunityFileTable.communityId, CommunityFileTable.fileId)
+    var identities by IdentityEntity
+        .via(CommunityIdentityTable.communityId, CommunityIdentityTable.identityId)
+    val publications by PublicationEntity.referrersOn(PublicationTable.communityId)
 
     override fun insert(request: CommunityRequest) {
         this.name = request.name!!
@@ -432,10 +445,11 @@ class PublicationEntity(id: EntityID<UUID>) : UUIDEntity(id), Dao, DesignEntity<
     DependencyMapper<PublicationDependency>, ResponseMapper<PublicationResponse> {
     companion object : UUIDEntityClass<PublicationEntity>(PublicationTable)
 
-    var community by CommunityEntity referencedOn PublicationTable.communityId
-    var sender by IdentityEntity optionalReferencedOn PublicationTable.senderId
-    val files by FileEntity via PublicationFileTable
-    val comments by CommentEntity referrersOn CommentTable.publicationId
+    var community by CommunityEntity.referencedOn(PublicationTable.communityId)
+    var sender by IdentityEntity.optionalReferencedOn(PublicationTable.senderId)
+    val files by FileEntity
+        .via(PublicationFileTable.publicationId, PublicationFileTable.fileId)
+    val comments by CommentEntity.referrersOn(CommentTable.publicationId)
 
     var text by PublicationTable.text
     var created by PublicationTable.created
@@ -483,9 +497,10 @@ class CommentEntity(id: EntityID<UUID>) : UUIDEntity(id), Dao, DesignEntity<Comm
     DependencyMapper<CommentDependency>, ResponseMapper<CommentResponse> {
     companion object : UUIDEntityClass<CommentEntity>(CommentTable)
 
-    var publication by PublicationEntity referencedOn CommentTable.publicationId
-    var sender by IdentityEntity optionalReferencedOn CommentTable.senderId
-    var files by FileEntity via CommentFileTable
+    var publication by PublicationEntity.referencedOn(CommentTable.publicationId)
+    var sender by IdentityEntity.optionalReferencedOn(CommentTable.senderId)
+    var files by FileEntity
+        .via(CommentFileTable.commentId, CommentFileTable.fileId)
 
     var text by CommentTable.text
     var created by CommentTable.created
