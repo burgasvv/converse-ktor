@@ -25,7 +25,7 @@ class IdentityService : RedisCacheHandler<IdentityEntity>, ReadDao<UUID, Identit
     ListDao<IdentityResponse>, DesignDao<UUID, IdentityRequest, IdentityResponse>,
     ModifyDao<IdentityRequest, IdentityResponse>, DesignFileDao<IdentityEntity>, DesignImageDao<UUID, IdentityEntity> {
 
-    val fileService = FileService()
+    private val fileService = FileService()
 
     override suspend fun handleCache(entity: IdentityEntity) {
         val redis = DatabaseConnection.redis

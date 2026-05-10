@@ -17,3 +17,4 @@ ktor:
       - org.burgas.database.DatabaseKt.configureDatabase
       - org.burgas.router.SecurityRouterKt.configureSecurityRouter
       - org.burgas.router.FileRouterKt.configureFileRouter
+      - org.burgas.router.IdentityRouterKt.configureIdentityRouter
