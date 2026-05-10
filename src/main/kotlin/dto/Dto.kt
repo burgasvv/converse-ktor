@@ -120,8 +120,8 @@ data class DialogueMessageDependency(
     override val id: UUID? = null,
     val sender: IdentityDependency? = null,
     val text: String? = null,
-    val files: List<FileDependency>? = null,
-    val created: String? = null
+    val created: String? = null,
+    val files: List<FileDependency>? = null
 ) : Dependency
 
 @Serializable
@@ -131,8 +131,8 @@ data class DialogueMessageResponse(
     val dialogue: DialogueDependency? = null,
     val sender: IdentityDependency? = null,
     val text: String? = null,
-    val files: List<FileDependency>? = null,
-    val created: String? = null
+    val created: String? = null,
+    val files: List<FileDependency>? = null
 ) : Response
 
 @Serializable
@@ -166,7 +166,8 @@ data class ChatResponse(
     val opened: Boolean? = null,
     val created: String? = null,
     val files: List<FileDependency>? = null,
-    val identities: List<IdentityDependency>? = null
+    val identities: List<IdentityDependency>? = null,
+    val messages: List<ChatMessageDependency>? = null
 ) : Response
 
 @Serializable
@@ -194,7 +195,7 @@ data class ChatMessageDependency(
 data class ChatMessageResponse(
     @Serializable(with = UUIDSerializer::class)
     override val id: UUID? = null,
-    val chatDependency: ChatDependency? = null,
+    val chat: ChatDependency? = null,
     val sender: IdentityDependency? = null,
     val text: String? = null,
     val created: String? = null,
@@ -232,7 +233,8 @@ data class CommunityResponse(
     val opened: Boolean? = null,
     val created: String? = null,
     val files: List<FileDependency>? = null,
-    val identities: List<IdentityDependency>? = null
+    val identities: List<IdentityDependency>? = null,
+    val publications: List<PublicationDependency>? = null
 ) : Response
 
 @Serializable
@@ -264,7 +266,8 @@ data class PublicationResponse(
     val sender: IdentityDependency? = null,
     val text: String? = null,
     val created: String? = null,
-    val files: List<FileDependency>? = null
+    val files: List<FileDependency>? = null,
+    val comments: List<CommentDependency>? = null
 ) : Response
 
 @Serializable

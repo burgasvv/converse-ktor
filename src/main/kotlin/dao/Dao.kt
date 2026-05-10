@@ -3,17 +3,15 @@ package org.burgas.dao
 import io.ktor.http.content.*
 import io.ktor.utils.io.*
 import kotlinx.datetime.toJavaLocalDate
+import kotlinx.datetime.toJavaLocalDateTime
 import kotlinx.datetime.toKotlinLocalDate
 import kotlinx.datetime.toKotlinLocalDateTime
 import kotlinx.io.readByteArray
 import org.burgas.database.*
 import org.burgas.dto.*
 import org.burgas.encryption.RegexType
-import org.jetbrains.exposed.dao.CompositeEntity
-import org.jetbrains.exposed.dao.CompositeEntityClass
 import org.jetbrains.exposed.dao.UUIDEntity
 import org.jetbrains.exposed.dao.UUIDEntityClass
-import org.jetbrains.exposed.dao.id.CompositeID
 import org.jetbrains.exposed.dao.id.EntityID
 import org.jetbrains.exposed.sql.SizedCollection
 import org.jetbrains.exposed.sql.and
@@ -96,7 +94,7 @@ class IdentityEntity(id: EntityID<UUID>) : UUIDEntity(id), Dao, DesignEntity<Ide
 
     var files by FileEntity via IdentityFileTable
     var contacts by IdentityEntity via IdentityContactTable
-    val dialogues by DialogueEntity referrersOn DialogueTable
+    val dialogues by DialogueEntity via DialogueIdentityTable
     var chats by ChatEntity via ChatIdentityTable
     var communities by CommunityEntity via CommunityIdentityTable
 
@@ -187,21 +185,42 @@ class IdentityEntity(id: EntityID<UUID>) : UUIDEntity(id), Dao, DesignEntity<Ide
             lastname = this.lastname,
             patronymic = this.patronymic,
             files = this.files.map { it.toDependency() },
-            contacts = this.contacts.map { it.toDependency() }
+            contacts = this.contacts.map { it.toDependency() },
+            dialogues = this.dialogues.map { it.toDependency() },
+            chats = this.chats.map { it.toDependency() },
+            communities = this.communities.map { it.toDependency() }
         )
     }
 }
 
-class DialogueEntity(id: EntityID<UUID>) : UUIDEntity(id) {
+class DialogueEntity(id: EntityID<UUID>) : UUIDEntity(id), Dao, DependencyMapper<DialogueDependency>, ResponseMapper<DialogueResponse> {
     companion object : UUIDEntityClass<DialogueEntity>(DialogueTable)
 
     var identities by IdentityEntity via DialogueIdentityTable
     val messages by DialogueMessageEntity referrersOn DialogueMessageTable
 
     var created by DialogueTable.created
+
+    override suspend fun toDependency(): DialogueDependency {
+        return DialogueDependency(
+            id = this.id.value,
+            identities = this.identities.map { it.toDependency() },
+            created = this.created.toJavaLocalDate().format(DateTimeFormatter.ofPattern("dd MMMM yyyy"))
+        )
+    }
+
+    override suspend fun toResponse(): DialogueResponse {
+        return DialogueResponse(
+            id = this.id.value,
+            identities = this.identities.map { it.toDependency() },
+            messages = this.messages.map { it.toDependency() },
+            created = this.created.toJavaLocalDate().format(DateTimeFormatter.ofPattern("dd MMMM yyyy"))
+        )
+    }
 }
 
-class DialogueMessageEntity(id: EntityID<UUID>) : UUIDEntity(id), Dao, DesignEntity<DialogueMessageRequest> {
+class DialogueMessageEntity(id: EntityID<UUID>) : UUIDEntity(id), Dao, DesignEntity<DialogueMessageRequest>,
+    DependencyMapper<DialogueMessageDependency>, ResponseMapper<DialogueMessageResponse> {
     companion object : UUIDEntityClass<DialogueMessageEntity>(DialogueMessageTable)
 
     var dialogue by DialogueEntity referencedOn DialogueMessageTable.dialogueId
@@ -231,9 +250,31 @@ class DialogueMessageEntity(id: EntityID<UUID>) : UUIDEntity(id), Dao, DesignEnt
         this.text = request.text!!
         this.created = LocalDateTime.now().toKotlinLocalDateTime()
     }
+
+    override suspend fun toDependency(): DialogueMessageDependency {
+        return DialogueMessageDependency(
+            id = this.id.value,
+            sender = this.sender?.toDependency(),
+            text = this.text,
+            files = this.files.map { it.toDependency() },
+            created = this.created.toJavaLocalDateTime().format(DateTimeFormatter.ofPattern("dd MMMM yyyy, hh:mm"))
+        )
+    }
+
+    override suspend fun toResponse(): DialogueMessageResponse {
+        return DialogueMessageResponse(
+            id = this.id.value,
+            dialogue = this.dialogue.toDependency(),
+            sender = this.sender?.toDependency(),
+            text = this.text,
+            files = this.files.map { it.toDependency() },
+            created = this.created.toJavaLocalDateTime().format(DateTimeFormatter.ofPattern("dd MMMM yyyy, hh:mm"))
+        )
+    }
 }
 
-class ChatEntity(id: EntityID<UUID>) : UUIDEntity(id), Dao, DesignEntity<ChatRequest>, ModifyEntity<ChatRequest> {
+class ChatEntity(id: EntityID<UUID>) : UUIDEntity(id), Dao, DesignEntity<ChatRequest>, ModifyEntity<ChatRequest>,
+    DependencyMapper<ChatDependency>, ResponseMapper<ChatResponse> {
     companion object : UUIDEntityClass<ChatEntity>(ChatTable)
 
     var name by ChatTable.name
@@ -263,9 +304,34 @@ class ChatEntity(id: EntityID<UUID>) : UUIDEntity(id), Dao, DesignEntity<ChatReq
             newAdmin[ChatIdentityTable.admin] = true
         }
     }
+
+    override suspend fun toDependency(): ChatDependency {
+        return ChatDependency(
+            id = this.id.value,
+            name = this.name,
+            description = this.description,
+            opened = this.opened,
+            created = this.created.toJavaLocalDate().format(DateTimeFormatter.ofPattern("dd MMMM yyyy")),
+            files = this.files.map { it.toDependency() }
+        )
+    }
+
+    override suspend fun toResponse(): ChatResponse {
+        return ChatResponse(
+            id = this.id.value,
+            name = this.name,
+            description = this.description,
+            opened = this.opened,
+            created = this.created.toJavaLocalDate().format(DateTimeFormatter.ofPattern("dd MMMM yyyy")),
+            identities = this.identities.map { it.toIdentityInChat(this.id.value) },
+            messages = this.messages.map { it.toDependency() },
+            files = this.files.map { it.toDependency() }
+        )
+    }
 }
 
-class ChatMessageEntity(id: EntityID<UUID>) : UUIDEntity(id), Dao, DesignEntity<ChatMessageRequest> {
+class ChatMessageEntity(id: EntityID<UUID>) : UUIDEntity(id), Dao, DesignEntity<ChatMessageRequest>,
+    DependencyMapper<ChatMessageDependency>, ResponseMapper<ChatMessageResponse> {
     companion object : UUIDEntityClass<ChatMessageEntity>(ChatMessageTable)
 
     var chat by ChatEntity referencedOn ChatMessageTable.chatId
@@ -282,9 +348,31 @@ class ChatMessageEntity(id: EntityID<UUID>) : UUIDEntity(id), Dao, DesignEntity<
         this.text = request.text!!
         this.created = LocalDateTime.now().toKotlinLocalDateTime()
     }
+
+    override suspend fun toDependency(): ChatMessageDependency {
+        return ChatMessageDependency(
+            id = this.id.value,
+            sender = this.sender?.toDependency(),
+            text = this.text,
+            created = this.created.toJavaLocalDateTime().format(DateTimeFormatter.ofPattern("dd MMMM yyyy, hh:mm")),
+            files = this.files.map { it.toDependency() }
+        )
+    }
+
+    override suspend fun toResponse(): ChatMessageResponse {
+        return ChatMessageResponse(
+            id = this.id.value,
+            chat = this.chat.toDependency(),
+            sender = this.sender?.toDependency(),
+            text = this.text,
+            created = this.created.toJavaLocalDateTime().format(DateTimeFormatter.ofPattern("dd MMMM yyyy, hh:mm")),
+            files = this.files.map { it.toDependency() },
+        )
+    }
 }
 
-class CommunityEntity(id: EntityID<UUID>) : UUIDEntity(id), Dao, DesignEntity<CommunityRequest>, ModifyEntity<CommunityRequest> {
+class CommunityEntity(id: EntityID<UUID>) : UUIDEntity(id), Dao, DesignEntity<CommunityRequest>, ModifyEntity<CommunityRequest>,
+    DependencyMapper<CommunityDependency>, ResponseMapper<CommunityResponse> {
     companion object : UUIDEntityClass<CommunityEntity>(CommunityTable)
 
     var name by CommunityTable.name
@@ -314,9 +402,34 @@ class CommunityEntity(id: EntityID<UUID>) : UUIDEntity(id), Dao, DesignEntity<Co
             newAdmin[CommunityIdentityTable.admin] = true
         }
     }
+
+    override suspend fun toDependency(): CommunityDependency {
+        return CommunityDependency(
+            id = this.id.value,
+            name = this.name,
+            description = this.description,
+            opened = this.opened,
+            created = this.created.toJavaLocalDate().format(DateTimeFormatter.ofPattern("dd MMMM yyyy")),
+            files = this.files.map { it.toDependency() }
+        )
+    }
+
+    override suspend fun toResponse(): CommunityResponse {
+        return CommunityResponse(
+            id = this.id.value,
+            name = this.name,
+            description = this.description,
+            opened = this.opened,
+            created = this.created.toJavaLocalDate().format(DateTimeFormatter.ofPattern("dd MMMM yyyy")),
+            files = this.files.map { it.toDependency() },
+            identities = this.identities.map { it.toIdentityInCommunity(this.id.value) },
+            publications = this.publications.map { it.toDependency() }
+        )
+    }
 }
 
-class PublicationEntity(id: EntityID<UUID>) : UUIDEntity(id), Dao, DesignEntity<PublicationRequest> {
+class PublicationEntity(id: EntityID<UUID>) : UUIDEntity(id), Dao, DesignEntity<PublicationRequest>,
+    DependencyMapper<PublicationDependency>, ResponseMapper<PublicationResponse> {
     companion object : UUIDEntityClass<PublicationEntity>(PublicationTable)
 
     var community by CommunityEntity referencedOn PublicationTable.communityId
@@ -328,14 +441,46 @@ class PublicationEntity(id: EntityID<UUID>) : UUIDEntity(id), Dao, DesignEntity<
     var created by PublicationTable.created
 
     override suspend fun insert(request: PublicationRequest) {
-        this.community = CommunityEntity.findById(request.communityId!!)!!
-        this.sender = IdentityEntity.findById(request.senderId!!)!!
-        this.text = request.text!!
-        this.created = LocalDateTime.now().toKotlinLocalDateTime()
+        val communityIdentity = CommunityIdentityTable.selectAll()
+            .where {
+                (CommunityIdentityTable.communityId eq request.communityId!!) and
+                        (CommunityIdentityTable.identityId eq request.senderId!!)
+            }.single()
+        if (communityIdentity[CommunityIdentityTable.admin]) {
+            this.community = CommunityEntity.findById(request.communityId!!)!!
+            this.sender = IdentityEntity.findById(request.senderId!!)!!
+            this.text = request.text!!
+            this.created = LocalDateTime.now().toKotlinLocalDateTime()
+        } else {
+            throw IllegalArgumentException("Sender must be admin status for sending publication")
+        }
+    }
+
+    override suspend fun toDependency(): PublicationDependency {
+        return PublicationDependency(
+            id = this.id.value,
+            sender = this.sender?.toDependency(),
+            text = this.text,
+            created = this.created.toJavaLocalDateTime().format(DateTimeFormatter.ofPattern("dd MMMM yyyy, hh:mm")),
+            files = this.files.map { it.toDependency() }
+        )
+    }
+
+    override suspend fun toResponse(): PublicationResponse {
+        return PublicationResponse(
+            id = this.id.value,
+            community = this.community.toDependency(),
+            sender = this.sender?.toDependency(),
+            text = this.text,
+            created = this.created.toJavaLocalDateTime().format(DateTimeFormatter.ofPattern("dd MMMM yyyy, hh:mm")),
+            files = this.files.map { it.toDependency() },
+            comments = this.comments.map { it.toDependency() }
+        )
     }
 }
 
-class CommentEntity(id: EntityID<UUID>) : UUIDEntity(id), Dao, DesignEntity<CommentRequest> {
+class CommentEntity(id: EntityID<UUID>) : UUIDEntity(id), Dao, DesignEntity<CommentRequest>,
+    DependencyMapper<CommentDependency>, ResponseMapper<CommentResponse> {
     companion object : UUIDEntityClass<CommentEntity>(CommentTable)
 
     var publication by PublicationEntity referencedOn CommentTable.publicationId
@@ -350,5 +495,26 @@ class CommentEntity(id: EntityID<UUID>) : UUIDEntity(id), Dao, DesignEntity<Comm
         this.sender = IdentityEntity.findById(request.senderId!!)!!
         this.text = request.text!!
         this.created = LocalDateTime.now().toKotlinLocalDateTime()
+    }
+
+    override suspend fun toDependency(): CommentDependency {
+        return CommentDependency(
+            id = this.id.value,
+            sender = this.sender?.toDependency(),
+            text = this.text,
+            created = this.created.toJavaLocalDateTime().format(DateTimeFormatter.ofPattern("dd MMMM yyyy, hh:mm")),
+            files = this.files.map { it.toDependency() }
+        )
+    }
+
+    override suspend fun toResponse(): CommentResponse {
+        return CommentResponse(
+            id = this.id.value,
+            publication = this.publication.toDependency(),
+            sender = this.sender?.toDependency(),
+            text = this.text,
+            created = this.created.toJavaLocalDateTime().format(DateTimeFormatter.ofPattern("dd MMMM yyyy, hh:mm")),
+            files = this.files.map { it.toDependency() }
+        )
     }
 }
