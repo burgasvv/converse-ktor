@@ -28,6 +28,11 @@ data class ExceptionResponse(
 )
 
 @Serializable
+data class FileRequest(
+    val fileIds: List<@Serializable(with = UUIDSerializer::class) UUID>
+)
+
+@Serializable
 data class FileDependency(
     @Serializable(with = UUIDSerializer::class)
     override val id: UUID? = null,

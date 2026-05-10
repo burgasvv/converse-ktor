@@ -1,4 +1,4 @@
-package org.burgas.service
+package org.burgas.service.file
 
 import org.burgas.dao.File
 

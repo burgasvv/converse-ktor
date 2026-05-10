@@ -28,23 +28,23 @@ interface File
 interface Dao
 
 interface Uploader<F : File> {
-    suspend fun upload(partData: PartData): F
+    fun upload(partData: PartData): F
 }
 
 interface DesignEntity<R : Request> {
-    suspend fun insert(request: R)
+    fun insert(request: R)
 }
 
 interface ModifyEntity<R : Request> {
-    suspend fun update(request: R)
+    fun update(request: R)
 }
 
 interface DependencyMapper<D : Dependency> {
-    suspend fun toDependency(): D
+    fun toDependency(): D
 }
 
 interface ResponseMapper<F : Response> {
-    suspend fun toResponse(): F
+    fun toResponse(): F
 }
 
 class FileEntity(id: EntityID<UUID>) : UUIDEntity(id), File, Uploader<FileEntity>, DependencyMapper<FileDependency> {
@@ -56,7 +56,7 @@ class FileEntity(id: EntityID<UUID>) : UUIDEntity(id), File, Uploader<FileEntity
     var data by FileTable.data
 
     @OptIn(InternalAPI::class)
-    override suspend fun upload(partData: PartData): FileEntity {
+    override fun upload(partData: PartData): FileEntity {
         if (partData is PartData.FileItem) {
             this.name = partData.originalFileName!!
             this.contentType = "${partData.contentType!!.contentType}/${partData.contentType!!.contentSubtype}"
@@ -68,7 +68,7 @@ class FileEntity(id: EntityID<UUID>) : UUIDEntity(id), File, Uploader<FileEntity
         }
     }
 
-    override suspend fun toDependency(): FileDependency {
+    override fun toDependency(): FileDependency {
         return FileDependency(
             id = this.id.value,
             name = this.name,
@@ -98,7 +98,7 @@ class IdentityEntity(id: EntityID<UUID>) : UUIDEntity(id), Dao, DesignEntity<Ide
     var chats by ChatEntity via ChatIdentityTable
     var communities by CommunityEntity via CommunityIdentityTable
 
-    override suspend fun insert(request: IdentityRequest) {
+    override fun insert(request: IdentityRequest) {
         this.authority = request.authority ?: Authority.USER
         this.username = request.username!!
         this.password = BCrypt.hashpw(request.password!!, BCrypt.gensalt())
@@ -112,7 +112,7 @@ class IdentityEntity(id: EntityID<UUID>) : UUIDEntity(id), Dao, DesignEntity<Ide
         this.patronymic = request.patronymic!!
     }
 
-    override suspend fun update(request: IdentityRequest) {
+    override fun update(request: IdentityRequest) {
         this.authority = request.authority ?: this.authority
         this.username = request.username ?: this.username
         if (request.email != null) {
@@ -128,7 +128,7 @@ class IdentityEntity(id: EntityID<UUID>) : UUIDEntity(id), Dao, DesignEntity<Ide
         this.patronymic = request.patronymic ?: this.patronymic
     }
 
-    suspend fun toIdentityInChat(chatId: UUID): IdentityDependency {
+    fun toIdentityInChat(chatId: UUID): IdentityDependency {
         val chatIdentity = ChatIdentityTable.selectAll()
             .where { (ChatIdentityTable.identityId eq id.value) and (ChatIdentityTable.chatId eq chatId) }
             .single()
@@ -145,7 +145,7 @@ class IdentityEntity(id: EntityID<UUID>) : UUIDEntity(id), Dao, DesignEntity<Ide
         )
     }
 
-    suspend fun toIdentityInCommunity(communityId: UUID): IdentityDependency {
+    fun toIdentityInCommunity(communityId: UUID): IdentityDependency {
         val communityIdentity = CommunityIdentityTable.selectAll()
             .where { (CommunityIdentityTable.communityId eq communityId) and (CommunityIdentityTable.identityId eq id.value) }
             .single()
@@ -162,7 +162,7 @@ class IdentityEntity(id: EntityID<UUID>) : UUIDEntity(id), Dao, DesignEntity<Ide
         )
     }
 
-    override suspend fun toDependency(): IdentityDependency {
+    override fun toDependency(): IdentityDependency {
         return IdentityDependency(
             id = this.id.value,
             username = this.username,
@@ -175,7 +175,7 @@ class IdentityEntity(id: EntityID<UUID>) : UUIDEntity(id), Dao, DesignEntity<Ide
         )
     }
 
-    override suspend fun toResponse(): IdentityResponse {
+    override fun toResponse(): IdentityResponse {
         return IdentityResponse(
             id = this.id.value,
             username = this.username,
@@ -201,7 +201,7 @@ class DialogueEntity(id: EntityID<UUID>) : UUIDEntity(id), Dao, DependencyMapper
 
     var created by DialogueTable.created
 
-    override suspend fun toDependency(): DialogueDependency {
+    override fun toDependency(): DialogueDependency {
         return DialogueDependency(
             id = this.id.value,
             identities = this.identities.map { it.toDependency() },
@@ -209,7 +209,7 @@ class DialogueEntity(id: EntityID<UUID>) : UUIDEntity(id), Dao, DependencyMapper
         )
     }
 
-    override suspend fun toResponse(): DialogueResponse {
+    override fun toResponse(): DialogueResponse {
         return DialogueResponse(
             id = this.id.value,
             identities = this.identities.map { it.toDependency() },
@@ -232,7 +232,7 @@ class DialogueMessageEntity(id: EntityID<UUID>) : UUIDEntity(id), Dao, DesignEnt
 
     var created by DialogueMessageTable.created
 
-    override suspend fun insert(request: DialogueMessageRequest) {
+    override fun insert(request: DialogueMessageRequest) {
         val dialogueEntity = DialogueEntity.findById(request.dialogueId ?: UUID(0,0)) ?: DialogueEntity.new {
             if (request.firstCompanionId!! == request.secondCompanionId!!) throw IllegalArgumentException("Wrong dialogue identities")
             this.created = LocalDate.now().toKotlinLocalDate()
@@ -251,7 +251,7 @@ class DialogueMessageEntity(id: EntityID<UUID>) : UUIDEntity(id), Dao, DesignEnt
         this.created = LocalDateTime.now().toKotlinLocalDateTime()
     }
 
-    override suspend fun toDependency(): DialogueMessageDependency {
+    override fun toDependency(): DialogueMessageDependency {
         return DialogueMessageDependency(
             id = this.id.value,
             sender = this.sender?.toDependency(),
@@ -261,7 +261,7 @@ class DialogueMessageEntity(id: EntityID<UUID>) : UUIDEntity(id), Dao, DesignEnt
         )
     }
 
-    override suspend fun toResponse(): DialogueMessageResponse {
+    override fun toResponse(): DialogueMessageResponse {
         return DialogueMessageResponse(
             id = this.id.value,
             dialogue = this.dialogue.toDependency(),
@@ -286,14 +286,14 @@ class ChatEntity(id: EntityID<UUID>) : UUIDEntity(id), Dao, DesignEntity<ChatReq
     var identities by IdentityEntity via ChatIdentityTable
     val messages by ChatMessageEntity referrersOn ChatMessageTable.chatId
 
-    override suspend fun insert(request: ChatRequest) {
+    override fun insert(request: ChatRequest) {
         this.name = request.name!!
         this.description = request.description!!
         this.opened = request.opened!!
         this.created = LocalDate.now().toKotlinLocalDate()
     }
 
-    override suspend fun update(request: ChatRequest) {
+    override fun update(request: ChatRequest) {
         this.name = request.name ?: this.name
         this.description = request.description ?: this.description
         this.opened = request.opened ?: this.opened
@@ -305,7 +305,7 @@ class ChatEntity(id: EntityID<UUID>) : UUIDEntity(id), Dao, DesignEntity<ChatReq
         }
     }
 
-    override suspend fun toDependency(): ChatDependency {
+    override fun toDependency(): ChatDependency {
         return ChatDependency(
             id = this.id.value,
             name = this.name,
@@ -316,7 +316,7 @@ class ChatEntity(id: EntityID<UUID>) : UUIDEntity(id), Dao, DesignEntity<ChatReq
         )
     }
 
-    override suspend fun toResponse(): ChatResponse {
+    override fun toResponse(): ChatResponse {
         return ChatResponse(
             id = this.id.value,
             name = this.name,
@@ -342,14 +342,14 @@ class ChatMessageEntity(id: EntityID<UUID>) : UUIDEntity(id), Dao, DesignEntity<
 
     var files by FileEntity via ChatMessageFileTable
 
-    override suspend fun insert(request: ChatMessageRequest) {
+    override fun insert(request: ChatMessageRequest) {
         this.chat = ChatEntity.findById(request.chatId!!)!!
         this.sender = IdentityEntity.findById(request.senderId!!)!!
         this.text = request.text!!
         this.created = LocalDateTime.now().toKotlinLocalDateTime()
     }
 
-    override suspend fun toDependency(): ChatMessageDependency {
+    override fun toDependency(): ChatMessageDependency {
         return ChatMessageDependency(
             id = this.id.value,
             sender = this.sender?.toDependency(),
@@ -359,7 +359,7 @@ class ChatMessageEntity(id: EntityID<UUID>) : UUIDEntity(id), Dao, DesignEntity<
         )
     }
 
-    override suspend fun toResponse(): ChatMessageResponse {
+    override fun toResponse(): ChatMessageResponse {
         return ChatMessageResponse(
             id = this.id.value,
             chat = this.chat.toDependency(),
@@ -384,14 +384,14 @@ class CommunityEntity(id: EntityID<UUID>) : UUIDEntity(id), Dao, DesignEntity<Co
     var identities by IdentityEntity via CommunityIdentityTable
     val publications by PublicationEntity referrersOn PublicationTable.communityId
 
-    override suspend fun insert(request: CommunityRequest) {
+    override fun insert(request: CommunityRequest) {
         this.name = request.name!!
         this.description = request.description!!
         this.opened = request.opened!!
         this.created = LocalDate.now().toKotlinLocalDate()
     }
 
-    override suspend fun update(request: CommunityRequest) {
+    override fun update(request: CommunityRequest) {
         this.name = request.name ?: this.name
         this.description = request.description ?: this.description
         this.opened = request.opened ?: this.opened
@@ -403,7 +403,7 @@ class CommunityEntity(id: EntityID<UUID>) : UUIDEntity(id), Dao, DesignEntity<Co
         }
     }
 
-    override suspend fun toDependency(): CommunityDependency {
+    override fun toDependency(): CommunityDependency {
         return CommunityDependency(
             id = this.id.value,
             name = this.name,
@@ -414,7 +414,7 @@ class CommunityEntity(id: EntityID<UUID>) : UUIDEntity(id), Dao, DesignEntity<Co
         )
     }
 
-    override suspend fun toResponse(): CommunityResponse {
+    override fun toResponse(): CommunityResponse {
         return CommunityResponse(
             id = this.id.value,
             name = this.name,
@@ -440,7 +440,7 @@ class PublicationEntity(id: EntityID<UUID>) : UUIDEntity(id), Dao, DesignEntity<
     var text by PublicationTable.text
     var created by PublicationTable.created
 
-    override suspend fun insert(request: PublicationRequest) {
+    override fun insert(request: PublicationRequest) {
         val communityIdentity = CommunityIdentityTable.selectAll()
             .where {
                 (CommunityIdentityTable.communityId eq request.communityId!!) and
@@ -456,7 +456,7 @@ class PublicationEntity(id: EntityID<UUID>) : UUIDEntity(id), Dao, DesignEntity<
         }
     }
 
-    override suspend fun toDependency(): PublicationDependency {
+    override fun toDependency(): PublicationDependency {
         return PublicationDependency(
             id = this.id.value,
             sender = this.sender?.toDependency(),
@@ -466,7 +466,7 @@ class PublicationEntity(id: EntityID<UUID>) : UUIDEntity(id), Dao, DesignEntity<
         )
     }
 
-    override suspend fun toResponse(): PublicationResponse {
+    override fun toResponse(): PublicationResponse {
         return PublicationResponse(
             id = this.id.value,
             community = this.community.toDependency(),
@@ -490,14 +490,14 @@ class CommentEntity(id: EntityID<UUID>) : UUIDEntity(id), Dao, DesignEntity<Comm
     var text by CommentTable.text
     var created by CommentTable.created
 
-    override suspend fun insert(request: CommentRequest) {
+    override fun insert(request: CommentRequest) {
         this.publication = PublicationEntity.findById(request.publicationId!!)!!
         this.sender = IdentityEntity.findById(request.senderId!!)!!
         this.text = request.text!!
         this.created = LocalDateTime.now().toKotlinLocalDateTime()
     }
 
-    override suspend fun toDependency(): CommentDependency {
+    override fun toDependency(): CommentDependency {
         return CommentDependency(
             id = this.id.value,
             sender = this.sender?.toDependency(),
@@ -507,7 +507,7 @@ class CommentEntity(id: EntityID<UUID>) : UUIDEntity(id), Dao, DesignEntity<Comm
         )
     }
 
-    override suspend fun toResponse(): CommentResponse {
+    override fun toResponse(): CommentResponse {
         return CommentResponse(
             id = this.id.value,
             publication = this.publication.toDependency(),
