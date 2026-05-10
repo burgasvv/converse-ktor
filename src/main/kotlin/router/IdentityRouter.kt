@@ -1,6 +1,3 @@
-
-@file:Suppress("DEPRECATION")
-
 package org.burgas.router
 
 import io.ktor.http.*
@@ -9,7 +6,10 @@ import io.ktor.server.auth.*
 import io.ktor.server.request.*
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
+import io.ktor.server.sessions.get
+import io.ktor.server.sessions.sessions
 import io.ktor.util.*
+import org.burgas.dto.AuthSession
 import org.burgas.dto.FileRequest
 import org.burgas.dto.IdentityRequest
 import org.burgas.service.IdentityService
@@ -29,14 +29,15 @@ fun Application.configureIdentityRouter() {
 
     routing {
 
+        @Suppress("DEPRECATION")
         intercept(ApplicationCallPipeline.Call) {
 
             if (urlsWithBody.contains(call.request.path())) {
-                val principal = call.principal<UserPasswordCredential>()!!
+                val authSession = call.sessions.get(AuthSession::class) ?: throw IllegalArgumentException("Auth Session is null")
                 val identityRequest = call.receive(IdentityRequest::class)
                 val identityEntity = identityService.findEntity(identityRequest.id!!)
 
-                if (identityEntity.email == principal.name) {
+                if (identityEntity.email == authSession.email) {
                     call.attributes[AttributeKey<IdentityRequest>("identityRequest")] = identityRequest
                     proceed()
                 } else {
@@ -44,11 +45,11 @@ fun Application.configureIdentityRouter() {
                 }
 
             } else if (urlsWithParam.contains(call.request.path())) {
-                val principal = call.principal<UserPasswordCredential>()!!
+                val authSession = call.sessions.get(AuthSession::class) ?: throw IllegalArgumentException("Auth Session is null")
                 val identityId = UUID.fromString(call.parameters["identityId"])
                 val identityEntity = identityService.findEntity(identityId)
 
-                if (identityEntity.email == principal.name) {
+                if (identityEntity.email == authSession.email) {
                     proceed()
                 } else {
                     throw IllegalArgumentException("Identity not authorized")
@@ -79,7 +80,7 @@ fun Application.configureIdentityRouter() {
                 }
             }
 
-            authenticate("basic-auth-all") {
+            authenticate("basic-auth-session") {
 
                 post("/update") {
                     val identityRequest = call.attributes[AttributeKey<IdentityRequest>("identityRequest")]

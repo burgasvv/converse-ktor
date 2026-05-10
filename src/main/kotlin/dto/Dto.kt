@@ -28,6 +28,9 @@ data class ExceptionResponse(
 )
 
 @Serializable
+data class AuthSession(val email: String)
+
+@Serializable
 data class FileRequest(
     val fileIds: List<@Serializable(with = UUIDSerializer::class) UUID>
 )

@@ -18,3 +18,4 @@ ktor:
       - org.burgas.router.SecurityRouterKt.configureSecurityRouter
       - org.burgas.router.FileRouterKt.configureFileRouter
       - org.burgas.router.IdentityRouterKt.configureIdentityRouter
+      - org.burgas.router.DialogueRouterKt.configureDialogueRouter

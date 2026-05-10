@@ -13,6 +13,7 @@ import org.burgas.dao.IdentityEntity
 import org.burgas.database.Authority
 import org.burgas.database.DatabaseConnection
 import org.burgas.database.IdentityTable
+import org.burgas.dto.AuthSession
 import org.burgas.dto.CsrfToken
 import org.burgas.dto.ExceptionResponse
 import org.jetbrains.exposed.sql.transactions.experimental.newSuspendedTransaction
@@ -21,6 +22,7 @@ import org.mindrot.jbcrypt.BCrypt
 fun Application.configureSecurity() {
 
     authentication {
+
         basic(name = "basic-auth-all") {
             validate { credentials ->
                 val identityEntity = newSuspendedTransaction(
@@ -38,6 +40,7 @@ fun Application.configureSecurity() {
                 }
             }
         }
+
         basic(name = "basic-auth-admin") {
             validate { credentials ->
                 val identityEntity = newSuspendedTransaction(
@@ -56,21 +59,34 @@ fun Application.configureSecurity() {
                 }
             }
         }
+
+        session<AuthSession>("basic-auth-session") {
+            validate { session -> session }
+            challenge {
+                val exceptionResponse = ExceptionResponse(
+                    status = HttpStatusCode.Unauthorized.description,
+                    code = HttpStatusCode.Unauthorized.value,
+                    message = "Not authenticated"
+                )
+                call.respond(HttpStatusCode.Unauthorized, exceptionResponse)
+            }
+        }
     }
     install(Sessions) {
         cookie<CsrfToken>("CSRF_TOKEN")
+        cookie<AuthSession>("AUTH_SESSION")
     }
 
-//    install(StatusPages) {
-//        exception<Throwable> { call, cause ->
-//            val exceptionResponse = ExceptionResponse(
-//                status = HttpStatusCode.BadRequest.description,
-//                code = HttpStatusCode.BadRequest.value,
-//                message = cause.localizedMessage
-//            )
-//            call.respond(HttpStatusCode.BadRequest, exceptionResponse)
-//        }
-//    }
+    install(StatusPages) {
+        exception<Throwable> { call, cause ->
+            val exceptionResponse = ExceptionResponse(
+                status = HttpStatusCode.BadRequest.description,
+                code = HttpStatusCode.BadRequest.value,
+                message = cause.localizedMessage
+            )
+            call.respond(HttpStatusCode.BadRequest, exceptionResponse)
+        }
+    }
 
     install(CORS) {
         allowMethod(HttpMethod.Options)

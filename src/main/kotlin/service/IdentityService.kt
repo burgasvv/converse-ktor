@@ -29,10 +29,10 @@ class IdentityService : RedisCacheHandler<IdentityEntity>, ReadDao<UUID, Identit
     ListDao<IdentityResponse>, DesignDao<UUID, IdentityRequest, IdentityResponse>,
     ModifyDao<IdentityRequest, IdentityResponse>, DesignFileDao<IdentityEntity>, DesignImageDao<UUID, IdentityEntity> {
 
+    private val redis = DatabaseConnection.redis
     private val fileService = FileService()
 
     override suspend fun handleCache(entity: IdentityEntity) {
-        val redis = DatabaseConnection.redis
         val identityKey = CacheKey.IDENTITY_KEY.format(entity.id.value)
         if (redis.exists(identityKey)) redis.del(identityKey)
 
@@ -82,7 +82,6 @@ class IdentityService : RedisCacheHandler<IdentityEntity>, ReadDao<UUID, Identit
     override suspend fun findById(id: UUID): IdentityResponse = newSuspendedTransaction(
         db = DatabaseConnection.postgres, context = Dispatchers.Default, readOnly = true
     ) {
-        val redis = DatabaseConnection.redis
         val identityKey = CacheKey.IDENTITY_KEY.format(id)
         if (redis.exists(identityKey)) {
             Json.decodeFromString<IdentityResponse>(redis.get(identityKey))
@@ -109,7 +108,6 @@ class IdentityService : RedisCacheHandler<IdentityEntity>, ReadDao<UUID, Identit
         context = Dispatchers.Default,
         transactionIsolation = Connection.TRANSACTION_READ_COMMITTED
     ) {
-        val redis = DatabaseConnection.redis
         val identityEntity = IdentityEntity.new { this.insert(request) }
             .load(
                 IdentityEntity::files, IdentityEntity::contacts,
@@ -126,7 +124,6 @@ class IdentityService : RedisCacheHandler<IdentityEntity>, ReadDao<UUID, Identit
         context = Dispatchers.Default,
         transactionIsolation = Connection.TRANSACTION_READ_COMMITTED
     ) {
-        val redis = DatabaseConnection.redis
         val identityEntity = IdentityEntity.findByIdAndUpdate(request.id!!) { it.update(request) }!!
             .load(
                 IdentityEntity::files, IdentityEntity::contacts,
