@@ -18,7 +18,24 @@ class DialogueService : RedisCacheHandler<DialogueEntity>, ReadDao<UUID, Dialogu
     private val redis = DatabaseConnection.redis
 
     override suspend fun handleCache(entity: DialogueEntity) {
-        TODO("Not yet implemented")
+        val dialogueKey = CacheKey.DIALOGUE_KEY.format(entity.id.value)
+        if (redis.exists(dialogueKey)) redis.del(dialogueKey)
+
+        val identities = entity.identities
+        if (!identities.empty()) {
+            identities.forEach { identityEntity ->
+                val identityKey = CacheKey.IDENTITY_KEY.format(identityEntity.id.value)
+                if (redis.exists(identityKey)) redis.del(identityKey)
+            }
+        }
+
+        val messages = entity.messages
+        if (!messages.empty()) {
+            messages.forEach { dialogueMessageEntity ->
+                val dialogueMessageKey = CacheKey.DIALOGUE_MESSAGE_KEY.format(dialogueMessageEntity.id.value)
+                if (redis.exists(dialogueMessageKey)) redis.del(dialogueMessageKey)
+            }
+        }
     }
 
     override suspend fun findEntity(id: UUID): DialogueEntity = newSuspendedTransaction(
