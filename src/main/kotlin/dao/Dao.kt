@@ -203,7 +203,7 @@ class DialogueEntity(id: EntityID<UUID>) : UUIDEntity(id), Dao, DependencyMapper
     companion object : UUIDEntityClass<DialogueEntity>(DialogueTable)
 
     var identities by IdentityEntity
-        .via(DialogueIdentityTable.dialogueId, DialogueIdentityTable.dialogueId)
+        .via(DialogueIdentityTable.dialogueId, DialogueIdentityTable.identityId)
     val messages by DialogueMessageEntity.referrersOn(DialogueMessageTable.dialogueId)
 
     var created by DialogueTable.created
