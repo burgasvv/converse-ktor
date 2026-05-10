@@ -15,7 +15,9 @@ ktor:
       - org.burgas.serialization.SerializationKt.configureSerialization
       - org.burgas.security.SecurityKt.configureSecurity
       - org.burgas.database.DatabaseKt.configureDatabase
+      - org.burgas.websocket.WebSocketKt.configureWebSocket
       - org.burgas.router.SecurityRouterKt.configureSecurityRouter
       - org.burgas.router.FileRouterKt.configureFileRouter
       - org.burgas.router.IdentityRouterKt.configureIdentityRouter
       - org.burgas.router.DialogueRouterKt.configureDialogueRouter
+      - org.burgas.router.DialogueMessageRouterKt.configureDialogueMessageRouter

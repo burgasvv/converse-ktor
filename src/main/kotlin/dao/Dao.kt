@@ -241,16 +241,17 @@ class DialogueMessageEntity(id: EntityID<UUID>) : UUIDEntity(id), Dao, DesignEnt
     var created by DialogueMessageTable.created
 
     override fun insert(request: DialogueMessageRequest) {
-        val dialogueEntity = DialogueEntity.findById(request.dialogueId ?: UUID(0, 0)) ?: DialogueEntity.new {
+        var dialogueEntity = DialogueEntity.findById(request.dialogueId ?: UUID(0, 0))
+        if (dialogueEntity == null) {
+            dialogueEntity = DialogueEntity.new { this.created = LocalDate.now().toKotlinLocalDate() }
             if (request.firstCompanionId!! == request.secondCompanionId!!) throw IllegalArgumentException("Wrong dialogue identities")
-            this.created = LocalDate.now().toKotlinLocalDate()
             val firstCompanion = IdentityEntity.findById(request.firstCompanionId)!!
             val secondCompanion = IdentityEntity.findById(request.secondCompanionId)!!
-            this.identities = SizedCollection(firstCompanion, secondCompanion)
+            dialogueEntity.identities = SizedCollection(firstCompanion, secondCompanion)
         }
         this.dialogue = dialogueEntity
         val sender = IdentityEntity.findById(request.senderId!!)!!
-        if (dialogueEntity.identities.contains(sender)) {
+        if (dialogueEntity.identities.map { it.id.value }.contains(sender.id.value)) {
             this.sender = sender
         } else {
             throw IllegalArgumentException("This sender not in this dialogue")
@@ -353,10 +354,16 @@ class ChatMessageEntity(id: EntityID<UUID>) : UUIDEntity(id), Dao, DesignEntity<
         .via(ChatMessageFileTable.chatMessageId, ChatMessageFileTable.fileId)
 
     override fun insert(request: ChatMessageRequest) {
-        this.chat = ChatEntity.findById(request.chatId!!)!!
-        this.sender = IdentityEntity.findById(request.senderId!!)!!
-        this.text = request.text!!
-        this.created = LocalDateTime.now().toKotlinLocalDateTime()
+        val chatEntity = ChatEntity.findById(request.chatId!!)!!
+        val identityEntity = IdentityEntity.findById(request.senderId!!)!!
+        if (chatEntity.identities.map { it.id.value }.contains(identityEntity.id.value)) {
+            this.chat = chatEntity
+            this.sender = identityEntity
+            this.text = request.text!!
+            this.created = LocalDateTime.now().toKotlinLocalDateTime()
+        } else {
+            throw IllegalArgumentException("This sender not in this chat")
+        }
     }
 
     override fun toDependency(): ChatMessageDependency {
@@ -506,10 +513,16 @@ class CommentEntity(id: EntityID<UUID>) : UUIDEntity(id), Dao, DesignEntity<Comm
     var created by CommentTable.created
 
     override fun insert(request: CommentRequest) {
-        this.publication = PublicationEntity.findById(request.publicationId!!)!!
-        this.sender = IdentityEntity.findById(request.senderId!!)!!
-        this.text = request.text!!
-        this.created = LocalDateTime.now().toKotlinLocalDateTime()
+        val publicationEntity = PublicationEntity.findById(request.publicationId!!)!!
+        val identityEntity = IdentityEntity.findById(request.senderId!!)!!
+        if (publicationEntity.community.identities.map { it.id.value }.contains(identityEntity.id.value)) {
+            this.publication = publicationEntity
+            this.sender = identityEntity
+            this.text = request.text!!
+            this.created = LocalDateTime.now().toKotlinLocalDateTime()
+        } else {
+            throw IllegalArgumentException("This comment sender not in this community")
+        }
     }
 
     override fun toDependency(): CommentDependency {
