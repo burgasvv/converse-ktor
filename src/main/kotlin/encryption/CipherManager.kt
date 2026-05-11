@@ -22,9 +22,9 @@ object CipherManager {
         return Base64.getEncoder().encodeToString(encryptedBytes)
     }
 
-    fun decrypt(encryptedText: String, secretKey: String, iv: String): String {
-        val keySpec = SecretKeySpec(secretKey.toByteArray(), "AES")
-        val ivSpec = IvParameterSpec(iv.toByteArray())
+    fun decrypt(encryptedText: String): String {
+        val keySpec = SecretKeySpec(SECRET_KEY.toByteArray(), "AES")
+        val ivSpec = IvParameterSpec(IV.toByteArray())
 
         val cipher = Cipher.getInstance(ALGORITHM)
         cipher.init(Cipher.DECRYPT_MODE, keySpec, ivSpec)

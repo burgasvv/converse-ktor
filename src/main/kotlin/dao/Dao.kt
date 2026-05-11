@@ -9,6 +9,7 @@ import kotlinx.datetime.toKotlinLocalDateTime
 import kotlinx.io.readByteArray
 import org.burgas.database.*
 import org.burgas.dto.*
+import org.burgas.encryption.CipherManager
 import org.burgas.encryption.RegexType
 import org.jetbrains.exposed.dao.UUIDEntity
 import org.jetbrains.exposed.dao.UUIDEntityClass
@@ -256,7 +257,7 @@ class DialogueMessageEntity(id: EntityID<UUID>) : UUIDEntity(id), Dao, DesignEnt
         } else {
             throw IllegalArgumentException("This sender not in this dialogue")
         }
-        this.text = request.text!!
+        this.text = CipherManager.encrypt(request.text!!)
         this.created = LocalDateTime.now().toKotlinLocalDateTime()
     }
 
@@ -264,7 +265,7 @@ class DialogueMessageEntity(id: EntityID<UUID>) : UUIDEntity(id), Dao, DesignEnt
         return DialogueMessageDependency(
             id = this.id.value,
             sender = this.sender?.toDependency(),
-            text = this.text,
+            text = CipherManager.decrypt(this.text),
             files = this.files.map { it.toDependency() },
             created = this.created.toJavaLocalDateTime().format(DateTimeFormatter.ofPattern("dd MMMM yyyy, hh:mm"))
         )
@@ -275,7 +276,7 @@ class DialogueMessageEntity(id: EntityID<UUID>) : UUIDEntity(id), Dao, DesignEnt
             id = this.id.value,
             dialogue = this.dialogue.toDependency(),
             sender = this.sender?.toDependency(),
-            text = this.text,
+            text = CipherManager.decrypt(this.text),
             files = this.files.map { it.toDependency() },
             created = this.created.toJavaLocalDateTime().format(DateTimeFormatter.ofPattern("dd MMMM yyyy, hh:mm"))
         )
@@ -359,7 +360,7 @@ class ChatMessageEntity(id: EntityID<UUID>) : UUIDEntity(id), Dao, DesignEntity<
         if (chatEntity.identities.map { it.id.value }.contains(identityEntity.id.value)) {
             this.chat = chatEntity
             this.sender = identityEntity
-            this.text = request.text!!
+            this.text = CipherManager.encrypt(request.text!!)
             this.created = LocalDateTime.now().toKotlinLocalDateTime()
         } else {
             throw IllegalArgumentException("This sender not in this chat")
@@ -370,7 +371,7 @@ class ChatMessageEntity(id: EntityID<UUID>) : UUIDEntity(id), Dao, DesignEntity<
         return ChatMessageDependency(
             id = this.id.value,
             sender = this.sender?.toDependency(),
-            text = this.text,
+            text = CipherManager.decrypt(this.text),
             created = this.created.toJavaLocalDateTime().format(DateTimeFormatter.ofPattern("dd MMMM yyyy, hh:mm")),
             files = this.files.map { it.toDependency() }
         )
@@ -381,7 +382,7 @@ class ChatMessageEntity(id: EntityID<UUID>) : UUIDEntity(id), Dao, DesignEntity<
             id = this.id.value,
             chat = this.chat.toDependency(),
             sender = this.sender?.toDependency(),
-            text = this.text,
+            text = CipherManager.decrypt(this.text),
             created = this.created.toJavaLocalDateTime().format(DateTimeFormatter.ofPattern("dd MMMM yyyy, hh:mm")),
             files = this.files.map { it.toDependency() },
         )
@@ -470,7 +471,7 @@ class PublicationEntity(id: EntityID<UUID>) : UUIDEntity(id), Dao, DesignEntity<
         if (communityIdentity[CommunityIdentityTable.admin]) {
             this.community = CommunityEntity.findById(request.communityId!!)!!
             this.sender = IdentityEntity.findById(request.senderId!!)!!
-            this.text = request.text!!
+            this.text = CipherManager.encrypt(request.text!!)
             this.created = LocalDateTime.now().toKotlinLocalDateTime()
         } else {
             throw IllegalArgumentException("Sender must be admin status for sending publication")
@@ -481,7 +482,7 @@ class PublicationEntity(id: EntityID<UUID>) : UUIDEntity(id), Dao, DesignEntity<
         return PublicationDependency(
             id = this.id.value,
             sender = this.sender?.toDependency(),
-            text = this.text,
+            text = CipherManager.decrypt(this.text),
             created = this.created.toJavaLocalDateTime().format(DateTimeFormatter.ofPattern("dd MMMM yyyy, hh:mm")),
             files = this.files.map { it.toDependency() }
         )
@@ -492,7 +493,7 @@ class PublicationEntity(id: EntityID<UUID>) : UUIDEntity(id), Dao, DesignEntity<
             id = this.id.value,
             community = this.community.toDependency(),
             sender = this.sender?.toDependency(),
-            text = this.text,
+            text = CipherManager.decrypt(this.text),
             created = this.created.toJavaLocalDateTime().format(DateTimeFormatter.ofPattern("dd MMMM yyyy, hh:mm")),
             files = this.files.map { it.toDependency() },
             comments = this.comments.map { it.toDependency() }
@@ -518,7 +519,7 @@ class CommentEntity(id: EntityID<UUID>) : UUIDEntity(id), Dao, DesignEntity<Comm
         if (publicationEntity.community.identities.map { it.id.value }.contains(identityEntity.id.value)) {
             this.publication = publicationEntity
             this.sender = identityEntity
-            this.text = request.text!!
+            this.text = CipherManager.encrypt(request.text!!)
             this.created = LocalDateTime.now().toKotlinLocalDateTime()
         } else {
             throw IllegalArgumentException("This comment sender not in this community")
@@ -529,7 +530,7 @@ class CommentEntity(id: EntityID<UUID>) : UUIDEntity(id), Dao, DesignEntity<Comm
         return CommentDependency(
             id = this.id.value,
             sender = this.sender?.toDependency(),
-            text = this.text,
+            text = CipherManager.decrypt(this.text),
             created = this.created.toJavaLocalDateTime().format(DateTimeFormatter.ofPattern("dd MMMM yyyy, hh:mm")),
             files = this.files.map { it.toDependency() }
         )
@@ -540,7 +541,7 @@ class CommentEntity(id: EntityID<UUID>) : UUIDEntity(id), Dao, DesignEntity<Comm
             id = this.id.value,
             publication = this.publication.toDependency(),
             sender = this.sender?.toDependency(),
-            text = this.text,
+            text = CipherManager.decrypt(this.text),
             created = this.created.toJavaLocalDateTime().format(DateTimeFormatter.ofPattern("dd MMMM yyyy, hh:mm")),
             files = this.files.map { it.toDependency() }
         )
