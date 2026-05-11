@@ -88,10 +88,10 @@ fun Application.configureIdentityRouter() {
                     call.respondRedirect("/api/v1/identities/by-id?identityId=${identityResponse.id}")
                 }
 
-                delete("/delete") {
+                post("/delete") {
                     val identityId = UUID.fromString(call.parameters["identityId"])
                     identityService.delete(identityId)
-                    call.respond(HttpStatusCode.OK)
+                    call.respondRedirect("/api/v1/security/logout")
                 }
 
                 put("/upload-files") {

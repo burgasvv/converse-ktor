@@ -61,7 +61,7 @@ fun Application.configureSecurity() {
         }
 
         session<AuthSession>("basic-auth-session") {
-            validate { session -> session }
+            validate { authSession -> authSession }
             challenge {
                 val exceptionResponse = ExceptionResponse(
                     status = HttpStatusCode.Unauthorized.description,

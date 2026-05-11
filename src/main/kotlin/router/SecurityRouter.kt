@@ -1,22 +1,14 @@
 package org.burgas.router
 
-import io.ktor.http.HttpStatusCode
-import io.ktor.server.application.Application
-import io.ktor.server.auth.UserPasswordCredential
-import io.ktor.server.auth.authenticate
-import io.ktor.server.auth.principal
-import io.ktor.server.response.respond
-import io.ktor.server.routing.get
-import io.ktor.server.routing.post
-import io.ktor.server.routing.route
-import io.ktor.server.routing.routing
-import io.ktor.server.sessions.clear
-import io.ktor.server.sessions.get
-import io.ktor.server.sessions.sessions
-import io.ktor.server.sessions.set
+import io.ktor.http.*
+import io.ktor.server.application.*
+import io.ktor.server.auth.*
+import io.ktor.server.response.*
+import io.ktor.server.routing.*
+import io.ktor.server.sessions.*
 import org.burgas.dto.AuthSession
 import org.burgas.dto.CsrfToken
-import java.util.UUID
+import java.util.*
 
 fun Application.configureSecurityRouter() {
     routing {
@@ -36,7 +28,7 @@ fun Application.configureSecurityRouter() {
 
             authenticate("basic-auth-all") {
 
-                post("/login") {
+                get("/login") {
                     val authSession = call.sessions.get(AuthSession::class)
                     if (authSession != null) {
                         call.respond(HttpStatusCode.OK, "You already logged in, need to logout")
@@ -50,7 +42,7 @@ fun Application.configureSecurityRouter() {
 
             authenticate("basic-auth-session") {
 
-                post("/logout") {
+                get("/logout") {
                     call.sessions.clear(AuthSession::class)
                     call.respond(HttpStatusCode.OK, "Successfully logged out")
                 }

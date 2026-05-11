@@ -11,19 +11,15 @@ Host: localhost:9000
 Accept: application/json
 
 ###
-POST /api/v1/security/login
+GET /api/v1/security/login
 Host: localhost:9000
-Accept: application/json
-Origin: http://localhost:9000
-X-Csrf-Token: 7f7eeddc-4fbc-4c08-bfa4-c6031ffa89ab
+Accept: text/plain
 Authorization: Basic burgasvv@gmail.com burgasvv
 
 ###
-POST /api/v1/security/logout
+GET /api/v1/security/logout
 Host: localhost:9000
-Accept: application/json
-Origin: http://localhost:9000
-X-Csrf-Token: 7f7eeddc-4fbc-4c08-bfa4-c6031ffa89ab
+Accept: text/plain
 
 
 
@@ -85,6 +81,13 @@ X-Csrf-Token: 7f7eeddc-4fbc-4c08-bfa4-c6031ffa89ab
 }
 
 ###
+POST /api/v1/identities/delete?identityId=72bf90d3-dda8-470a-b2f1-301cdfbb100c
+Host: localhost:9000
+Accept: application/json
+Origin: http://localhost:9000
+X-Csrf-Token: 7f7eeddc-4fbc-4c08-bfa4-c6031ffa89ab
+
+###
 GET /api/v1/identities/by-id?identityId=159514d2-05ec-4386-8df4-6c0c3aa69d8c
 Host: localhost:9000
 Accept: application/json
@@ -136,3 +139,32 @@ Accept: application/json
 Origin: http://localhost:9000
 X-Csrf-Token: 7f7eeddc-4fbc-4c08-bfa4-c6031ffa89ab
 Authorization: Basic burgasvv@gmail.com burgasvv
+
+
+
+### Dialogue Requests
+
+
+
+###
+GET /api/v1/dialogues/by-id?dialogueId=2c7b4569-c9b5-4f13-8e78-9502eee76dfc
+Host: localhost:9000
+Accept: application/json
+
+###
+DELETE /api/v1/dialogues/delete?dialogueId=2c7b4569-c9b5-4f13-8e78-9502eee76dfc
+Host: localhost:9000
+Accept: application/json
+Origin: http://localhost:9000
+X-Csrf-Token: 7f7eeddc-4fbc-4c08-bfa4-c6031ffa89ab
+
+
+
+### Dialogue-Message Requests
+
+
+
+###
+GET /api/v1/dialogue-messages/by-id?dialogueMessageId=b05f8964-f291-45b4-b875-048697bdade1
+Host: localhost:9000
+Accept: application/json
