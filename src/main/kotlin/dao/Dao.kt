@@ -18,6 +18,7 @@ import org.jetbrains.exposed.sql.SizedCollection
 import org.jetbrains.exposed.sql.and
 import org.jetbrains.exposed.sql.selectAll
 import org.jetbrains.exposed.sql.statements.api.ExposedBlob
+import org.jetbrains.exposed.sql.update
 import org.mindrot.jbcrypt.BCrypt
 import java.time.LocalDate
 import java.time.LocalDateTime
@@ -309,10 +310,9 @@ class ChatEntity(id: EntityID<UUID>) : UUIDEntity(id), Dao, DesignEntity<ChatReq
         this.description = request.description ?: this.description
         this.opened = request.opened ?: this.opened
         if (request.adminId != null) {
-            val newAdmin = ChatIdentityTable.selectAll()
-                .where { (ChatIdentityTable.chatId eq request.id!!) and (ChatIdentityTable.identityId eq request.adminId) }
-                .single()
-            newAdmin[ChatIdentityTable.admin] = true
+            ChatIdentityTable.update(where = { (ChatIdentityTable.chatId eq request.id!!) and (ChatIdentityTable.identityId eq request.adminId) }) {
+                it[ChatIdentityTable.admin] = true
+            }
         }
     }
 

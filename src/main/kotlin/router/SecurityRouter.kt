@@ -8,6 +8,7 @@ import io.ktor.server.routing.*
 import io.ktor.server.sessions.*
 import org.burgas.dto.AuthSession
 import org.burgas.dto.CsrfToken
+import org.burgas.encryption.CipherManager
 import java.util.*
 
 fun Application.configureSecurityRouter() {
@@ -34,7 +35,7 @@ fun Application.configureSecurityRouter() {
                         call.respond(HttpStatusCode.OK, "You already logged in, need to logout")
                     } else {
                         val principal = call.principal<UserPasswordCredential>()!!
-                        call.sessions.set(AuthSession(principal.name), AuthSession::class)
+                        call.sessions.set(AuthSession(CipherManager.encrypt(principal.name)), AuthSession::class)
                         call.respond(HttpStatusCode.OK, "Successfully logged in")
                     }
                 }

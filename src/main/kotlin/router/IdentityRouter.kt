@@ -12,6 +12,7 @@ import io.ktor.util.*
 import org.burgas.dto.AuthSession
 import org.burgas.dto.FileRequest
 import org.burgas.dto.IdentityRequest
+import org.burgas.encryption.CipherManager
 import org.burgas.service.IdentityService
 import java.util.*
 
@@ -27,38 +28,37 @@ fun Application.configureIdentityRouter() {
 
     val urlsWithBody: List<String> = listOf("/api/v1/identities/update")
 
-    routing {
+    intercept(ApplicationCallPipeline.Plugins) {
 
-        @Suppress("DEPRECATION")
-        intercept(ApplicationCallPipeline.Call) {
+        if (urlsWithBody.contains(call.request.path())) {
+            val authSession = call.sessions.get(AuthSession::class) ?: throw IllegalArgumentException("Auth Session is null")
+            val identityRequest = call.receive(IdentityRequest::class)
+            val identityEntity = identityService.findEntity(identityRequest.id!!)
 
-            if (urlsWithBody.contains(call.request.path())) {
-                val authSession = call.sessions.get(AuthSession::class) ?: throw IllegalArgumentException("Auth Session is null")
-                val identityRequest = call.receive(IdentityRequest::class)
-                val identityEntity = identityService.findEntity(identityRequest.id!!)
-
-                if (identityEntity.email == authSession.email) {
-                    call.attributes[AttributeKey<IdentityRequest>("identityRequest")] = identityRequest
-                    proceed()
-                } else {
-                    throw IllegalArgumentException("Identity not authorized")
-                }
-
-            } else if (urlsWithParam.contains(call.request.path())) {
-                val authSession = call.sessions.get(AuthSession::class) ?: throw IllegalArgumentException("Auth Session is null")
-                val identityId = UUID.fromString(call.parameters["identityId"])
-                val identityEntity = identityService.findEntity(identityId)
-
-                if (identityEntity.email == authSession.email) {
-                    proceed()
-                } else {
-                    throw IllegalArgumentException("Identity not authorized")
-                }
-
-            } else {
+            if (identityEntity.email == CipherManager.decrypt(authSession.token)) {
+                call.attributes[AttributeKey<IdentityRequest>("identityRequest")] = identityRequest
                 proceed()
+            } else {
+                throw IllegalArgumentException("Identity not authorized")
             }
+
+        } else if (urlsWithParam.contains(call.request.path())) {
+            val authSession = call.sessions.get(AuthSession::class) ?: throw IllegalArgumentException("Auth Session is null")
+            val identityId = UUID.fromString(call.parameters["identityId"])
+            val identityEntity = identityService.findEntity(identityId)
+
+            if (identityEntity.email == CipherManager.decrypt(authSession.token)) {
+                proceed()
+            } else {
+                throw IllegalArgumentException("Identity not authorized")
+            }
+
+        } else {
+            proceed()
         }
+    }
+
+    routing {
 
         route("/api/v1/identities") {
 

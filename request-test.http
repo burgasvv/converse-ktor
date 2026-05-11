@@ -14,7 +14,7 @@ Accept: application/json
 GET /api/v1/security/login
 Host: localhost:9000
 Accept: text/plain
-Authorization: Basic burgasvv@gmail.com burgasvv
+Authorization: Basic zagor@gmail.com zagor
 
 ###
 GET /api/v1/security/logout
@@ -168,3 +168,72 @@ X-Csrf-Token: 7f7eeddc-4fbc-4c08-bfa4-c6031ffa89ab
 GET /api/v1/dialogue-messages/by-id?dialogueMessageId=b05f8964-f291-45b4-b875-048697bdade1
 Host: localhost:9000
 Accept: application/json
+
+
+
+###
+POST /api/v1/chats/create
+Host: localhost:9000
+Accept: application/json
+Content-Type: application/json
+Origin: http://localhost:9000
+X-Csrf-Token: 7f7eeddc-4fbc-4c08-bfa4-c6031ffa89ab
+
+{
+    "name": "First Chat",
+    "description": "Описание чата First Chat",
+    "opened": true,
+    "adminId": "159514d2-05ec-4386-8df4-6c0c3aa69d8c"
+}
+
+###
+POST /api/v1/chats/update
+Host: localhost:9000
+Accept: application/json
+Content-Type: application/json
+Origin: http://localhost:9000
+X-Csrf-Token: 7f7eeddc-4fbc-4c08-bfa4-c6031ffa89ab
+
+{
+    "id": "7a430ac4-3274-4723-b5ce-e17eced40b85",
+    "adminId": "6f525500-1832-41b2-80c8-151c466854b8"
+}
+
+###
+PUT /api/v1/chats/join
+Host: localhost:9000
+Accept: application/json
+Content-Type: application/json
+Origin: http://localhost:9000
+X-Csrf-Token: 7f7eeddc-4fbc-4c08-bfa4-c6031ffa89ab
+
+{
+    "groupId": "7a430ac4-3274-4723-b5ce-e17eced40b85",
+    "applicantId": "6f525500-1832-41b2-80c8-151c466854b8"
+}
+
+###
+PUT /api/v1/chats/out
+Host: localhost:9000
+Accept: application/json
+Content-Type: application/json
+Origin: http://localhost:9000
+X-Csrf-Token: 7f7eeddc-4fbc-4c08-bfa4-c6031ffa89ab
+
+{
+    "groupId": "7a430ac4-3274-4723-b5ce-e17eced40b85",
+    "applicantId": "6f525500-1832-41b2-80c8-151c466854b8"
+}
+
+###
+PUT /api/v1/chats/remove-admin-status
+Host: localhost:9000
+Accept: application/json
+Content-Type: application/json
+Origin: http://localhost:9000
+X-Csrf-Token: 7f7eeddc-4fbc-4c08-bfa4-c6031ffa89ab
+
+{
+    "groupId": "7a430ac4-3274-4723-b5ce-e17eced40b85",
+    "applicantId": "6f525500-1832-41b2-80c8-151c466854b8"
+}

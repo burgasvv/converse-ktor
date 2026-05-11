@@ -26,6 +26,7 @@ import org.burgas.database.DatabaseConnection
 import org.burgas.dto.AuthSession
 import org.burgas.dto.DialogueMessageRequest
 import org.burgas.dto.DialogueMessageResponse
+import org.burgas.encryption.CipherManager
 import org.burgas.service.DialogueMessageService
 import org.jetbrains.exposed.dao.load
 import org.jetbrains.exposed.sql.transactions.experimental.newSuspendedTransaction
@@ -41,73 +42,73 @@ fun Application.configureDialogueMessageRouter() {
     val urlsByDialogueParam: List<String> = listOf("/api/v1/dialogue-messages/ws/by-dialogue")
     val urlsByMultipart: List<String> = listOf("/api/v1/dialogue-messages/create")
 
-    routing {
+    intercept(ApplicationCallPipeline.Plugins) {
 
-        @Suppress("DEPRECATION")
-        intercept(ApplicationCallPipeline.Call) {
+        if (urlsByMessageParam.contains(call.request.path())) {
+            val authSession = call.sessions.get(AuthSession::class)!!
+            val dialogueMessageId = UUID.fromString(call.parameters["dialogueMessageId"])
 
-            if (urlsByMessageParam.contains(call.request.path())) {
-                val authSession = call.sessions.get(AuthSession::class)!!
-                val dialogueMessageId = UUID.fromString(call.parameters["dialogueMessageId"])
-
-                newSuspendedTransaction(
-                    db = DatabaseConnection.postgres, context = Dispatchers.Default, readOnly = true
-                ) {
-                    val dialogueMessageEntity = DialogueMessageEntity.findById(dialogueMessageId)!!
-                        .load(
-                            DialogueMessageEntity::dialogue,
-                            DialogueMessageEntity::sender, DialogueMessageEntity::files
-                        )
-                    val sender = dialogueMessageEntity.sender
-                        ?: throw IllegalArgumentException("Dialogue message sender is null")
-                    if (authSession.email == sender.email) {
-                        proceed()
-                    } else {
-                        throw IllegalArgumentException("Identity not authorized")
-                    }
-                }
-
-            } else if (urlsByDialogueParam.contains(call.request.path())) {
-                val authSession = call.sessions.get(AuthSession::class)!!
-                val dialogueId = UUID.fromString(call.parameters["dialogueId"])
-
-                newSuspendedTransaction(
-                    db = DatabaseConnection.postgres, context = Dispatchers.Default, readOnly = true
-                ) {
-                    val dialogueEntity = DialogueEntity.findById(dialogueId)!!
-                        .load(DialogueEntity::identities, DialogueEntity::messages)
-
-                    if (dialogueEntity.identities.map { it.email }.contains(authSession.email)) {
-                        proceed()
-                    } else {
-                        throw IllegalArgumentException("Identity not authorized")
-                    }
-                }
-
-            } else if (urlsByMultipart.contains(call.request.path())) {
-                val authSession = call.sessions.get(AuthSession::class)!!
-                val multiPartData = call.receiveMultipart(Long.MAX_VALUE)
-
-                val readPart = multiPartData.asFlow().filterIsInstance<PartData.FormItem>().first()
-                val dialogueMessageRequest = Json.decodeFromString<DialogueMessageRequest>(readPart.value)
-                val identityEntity = newSuspendedTransaction(
-                    db = DatabaseConnection.postgres, context = Dispatchers.Default, readOnly = true
-                ) {
-                    IdentityEntity.findById(dialogueMessageRequest.senderId!!)!!
-                }
-                if (authSession.email == identityEntity.email) {
-                    val fileItems = multiPartData.asFlow().filterIsInstance<PartData.FileItem>().toList()
-                    call.attributes[AttributeKey<DialogueMessageRequest>("dialogueMessageRequest")] = dialogueMessageRequest
-                    call.attributes[AttributeKey<List<PartData>>("files")] = fileItems
+            newSuspendedTransaction(
+                db = DatabaseConnection.postgres, context = Dispatchers.Default, readOnly = true
+            ) {
+                val dialogueMessageEntity = DialogueMessageEntity.findById(dialogueMessageId)!!
+                    .load(
+                        DialogueMessageEntity::dialogue,
+                        DialogueMessageEntity::sender, DialogueMessageEntity::files
+                    )
+                val sender = dialogueMessageEntity.sender
+                    ?: throw IllegalArgumentException("Dialogue message sender is null")
+                if (sender.email == CipherManager.decrypt(authSession.token)) {
                     proceed()
                 } else {
                     throw IllegalArgumentException("Identity not authorized")
                 }
-
-            } else {
-                proceed()
             }
+
+        } else if (urlsByDialogueParam.contains(call.request.path())) {
+            val authSession = call.sessions.get(AuthSession::class)!!
+            val dialogueId = UUID.fromString(call.parameters["dialogueId"])
+
+            newSuspendedTransaction(
+                db = DatabaseConnection.postgres, context = Dispatchers.Default, readOnly = true
+            ) {
+                val dialogueEntity = DialogueEntity.findById(dialogueId)!!
+                    .load(DialogueEntity::identities, DialogueEntity::messages)
+
+                if (dialogueEntity.identities.map { it.email }
+                        .contains(CipherManager.decrypt(authSession.token))) {
+                    proceed()
+                } else {
+                    throw IllegalArgumentException("Identity not authorized")
+                }
+            }
+
+        } else if (urlsByMultipart.contains(call.request.path())) {
+            val authSession = call.sessions.get(AuthSession::class)!!
+            val multiPartData = call.receiveMultipart(Long.MAX_VALUE)
+
+            val readPart = multiPartData.asFlow().filterIsInstance<PartData.FormItem>().first()
+            val dialogueMessageRequest = Json.decodeFromString<DialogueMessageRequest>(readPart.value)
+            val identityEntity = newSuspendedTransaction(
+                db = DatabaseConnection.postgres, context = Dispatchers.Default, readOnly = true
+            ) {
+                IdentityEntity.findById(dialogueMessageRequest.senderId!!)!!
+            }
+            if (identityEntity.email == CipherManager.decrypt(authSession.token)) {
+                val fileItems = multiPartData.asFlow().filterIsInstance<PartData.FileItem>().toList()
+                call.attributes[AttributeKey<DialogueMessageRequest>("dialogueMessageRequest")] = dialogueMessageRequest
+                call.attributes[AttributeKey<List<PartData>>("files")] = fileItems
+                proceed()
+            } else {
+                throw IllegalArgumentException("Identity not authorized")
+            }
+
+        } else {
+            proceed()
         }
+    }
+
+    routing {
 
         route("/api/v1/dialogue-messages") {
 

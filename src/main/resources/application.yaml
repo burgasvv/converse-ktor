@@ -21,3 +21,4 @@ ktor:
       - org.burgas.router.IdentityRouterKt.configureIdentityRouter
       - org.burgas.router.DialogueRouterKt.configureDialogueRouter
       - org.burgas.router.DialogueMessageRouterKt.configureDialogueMessageRouter
+      - org.burgas.router.ChatRouterKt.configureChatRouter
