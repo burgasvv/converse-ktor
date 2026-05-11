@@ -14,6 +14,7 @@ import org.burgas.dao.IdentityEntity
 import org.burgas.database.DatabaseConnection
 import org.burgas.dto.AuthSession
 import org.burgas.dto.ChatRequest
+import org.burgas.dto.FileRequest
 import org.burgas.dto.GroupRequest
 import org.burgas.encryption.CipherManager
 import org.burgas.service.ChatService
@@ -24,13 +25,17 @@ import java.util.*
 fun Application.configureChatRouter() {
 
     val chatService = ChatService()
+    val urlsWithParam: List<String> = listOf(
+        "/api/v1/chats/delete", "/api/v1/chats/upload-files", "/api/v1/chats/remove-files",
+        "/api/v1/chats/create-preview-image", "/api/v1/chats/make-preview-image"
+    )
     val urlsWithGroupBody: List<String> = listOf(
         "/api/v1/chats/join", "/api/v1/chats/out", "/api/v1/chats/remove-admin-status"
     )
 
     intercept(ApplicationCallPipeline.Plugins) {
 
-        if (call.request.path().equals("/api/v1/chats/delete", false)) {
+        if (urlsWithParam.contains(call.request.path())) {
             val authSession = call.sessions.get(AuthSession::class)!!
             val chatId = UUID.fromString(call.parameters["chatId"])
 
@@ -144,6 +149,36 @@ fun Application.configureChatRouter() {
                 put("/remove-admin-status") {
                     val groupRequest = call.attributes[AttributeKey<GroupRequest>("groupRequest")]
                     chatService.removeAdminStatus(groupRequest)
+                    call.respond(HttpStatusCode.OK)
+                }
+
+                post("/upload-files") {
+                    val chatId = UUID.fromString(call.parameters["chatId"])
+                    val chatEntity = chatService.findEntity(chatId)
+                    chatService.uploadFiles(chatEntity, call.receiveMultipart(Long.MAX_VALUE))
+                    call.respond(HttpStatusCode.OK)
+                }
+
+                delete("/remove-files") {
+                    val chatId = UUID.fromString(call.parameters["chatId"])
+                    val fileRequest = call.receive(FileRequest::class)
+                    val chatEntity = chatService.findEntity(chatId)
+                    chatService.removeFiles(chatEntity, fileRequest)
+                    call.respond(HttpStatusCode.OK)
+                }
+
+                post("/create-preview-image") {
+                    val chatId = UUID.fromString(call.parameters["chatId"])
+                    val chatEntity = chatService.findEntity(chatId)
+                    chatService.createPreviewImage(chatEntity, call.receiveMultipart(Long.MAX_VALUE))
+                    call.respond(HttpStatusCode.OK)
+                }
+
+                put("/make-preview-image") {
+                    val chatId = UUID.fromString(call.parameters["chatId"])
+                    val imageId = UUID.fromString(call.parameters["imageId"])
+                    val chatEntity = chatService.findEntity(chatId)
+                    chatService.makePreviewImage(chatEntity, imageId)
                     call.respond(HttpStatusCode.OK)
                 }
             }

@@ -21,8 +21,8 @@ class DialogueMessageService : RedisCacheHandler<DialogueMessageEntity>,
     ReadDao<UUID, DialogueMessageEntity, DialogueMessageResponse>,
     DesignPartDao<UUID, DialogueMessageRequest, DialogueMessageResponse> {
 
-    val redis = DatabaseConnection.redis
-    val fileService = FileService()
+    private val redis = DatabaseConnection.redis
+    private val fileService = FileService()
 
     override suspend fun handleCache(entity: DialogueMessageEntity) {
         val dialogueMessageKey = CacheKey.DIALOGUE_MESSAGE_KEY.format(entity.id.value)

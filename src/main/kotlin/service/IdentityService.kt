@@ -162,7 +162,9 @@ class IdentityService : RedisCacheHandler<IdentityEntity>, ReadDao<UUID, Identit
         context = Dispatchers.Default,
         transactionIsolation = Connection.TRANSACTION_READ_COMMITTED
     ) {
-        FileEntity.forIds(fileRequest.fileIds).forEach { if (entity.files.contains(it)) it.delete() }
+        FileEntity.forIds(fileRequest.fileIds).forEach { fileEntity ->
+            if (entity.files.map { it.id.value }.contains(fileEntity.id.value)) fileEntity.delete()
+        }
         handleCache(entity)
     }
 
@@ -189,7 +191,6 @@ class IdentityService : RedisCacheHandler<IdentityEntity>, ReadDao<UUID, Identit
             entity.files.filter { it.preview }.forEach { it.preview = false }
             fileService.makePreview(fileEntity)
             handleCache(entity)
-            return@newSuspendedTransaction
         } else {
             throw IllegalArgumentException("File not in identity file list")
         }
