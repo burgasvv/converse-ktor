@@ -154,14 +154,15 @@ class CommunityService : RedisCacheHandler<CommunityEntity>, ReadDao<UUID, Commu
         val identityEntity = identityService.findEntity(groupRequest.applicantId)
 
         if (communityEntity.identities.map { it.id.value }.contains(identityEntity.id.value)) {
-            val chatIdentity = ChatIdentityTable.selectAll()
-                .where { (ChatIdentityTable.chatId eq communityEntity.id.value) and (ChatIdentityTable.identityId eq identityEntity.id.value) }
+            val communityIdentity = CommunityIdentityTable.selectAll()
+                .where { (CommunityIdentityTable.communityId eq communityEntity.id.value) and
+                        (CommunityIdentityTable.identityId eq identityEntity.id.value) }
                 .single()
 
-            if (!chatIdentity[ChatIdentityTable.admin]) {
-                ChatIdentityTable.deleteWhere {
-                    (ChatIdentityTable.chatId eq chatIdentity[ChatIdentityTable.chatId]) and
-                            (ChatIdentityTable.identityId eq chatIdentity[ChatIdentityTable.identityId])
+            if (!communityIdentity[CommunityIdentityTable.admin]) {
+                CommunityIdentityTable.deleteWhere {
+                    (CommunityIdentityTable.communityId eq communityIdentity[CommunityIdentityTable.communityId]) and
+                            (CommunityIdentityTable.identityId eq communityIdentity[CommunityIdentityTable.identityId])
                 }
                 handleCache(communityEntity)
 
@@ -183,12 +184,12 @@ class CommunityService : RedisCacheHandler<CommunityEntity>, ReadDao<UUID, Commu
         val identityEntity = identityService.findEntity(groupRequest.applicantId)
 
         if (communityEntity.identities.map { it.id.value }.contains(identityEntity.id.value)) {
-            val operation = (ChatIdentityTable.chatId eq communityEntity.id.value) and
-                    (ChatIdentityTable.identityId eq identityEntity.id.value)
+            val operation = (CommunityIdentityTable.communityId eq communityEntity.id.value) and
+                    (CommunityIdentityTable.identityId eq identityEntity.id.value)
 
-            val chatIdentity = ChatIdentityTable.selectAll().where { operation }.single()
-            if (chatIdentity[ChatIdentityTable.admin]) {
-                ChatIdentityTable.update(where = { operation }) { it[ChatIdentityTable.admin] = false }
+            val communityIdentity = CommunityIdentityTable.selectAll().where { operation }.single()
+            if (communityIdentity[CommunityIdentityTable.admin]) {
+                CommunityIdentityTable.update(where = { operation }) { it[CommunityIdentityTable.admin] = false }
                 handleCache(communityEntity)
 
             } else {

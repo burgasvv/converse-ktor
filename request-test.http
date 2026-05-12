@@ -14,7 +14,7 @@ Accept: application/json
 GET /api/v1/security/login
 Host: localhost:9000
 Accept: text/plain
-Authorization: Basic burgasvv@gmail.com burgasvv
+Authorization: Basic zagor@gmail.com zagor
 
 ###
 GET /api/v1/security/logout
@@ -274,10 +274,49 @@ X-Csrf-Token: 7f7eeddc-4fbc-4c08-bfa4-c6031ffa89ab
 
 {
     "id": "fde292e5-2e1a-4049-88f4-ab57e9249ef0",
-    "name": "Community First"
+    "adminId": "6f525500-1832-41b2-80c8-151c466854b8"
 }
 
 ###
 GET /api/v1/communities/by-id?communityId=fde292e5-2e1a-4049-88f4-ab57e9249ef0
 Host: localhost:9000
 Accept: application/json
+
+###
+PUT /api/v1/communities/join
+Host: localhost:9000
+Accept: application/json
+Content-Type: application/json
+Origin: http://localhost:9000
+X-Csrf-Token: 7f7eeddc-4fbc-4c08-bfa4-c6031ffa89ab
+
+{
+    "groupId": "fde292e5-2e1a-4049-88f4-ab57e9249ef0",
+    "applicantId": "6f525500-1832-41b2-80c8-151c466854b8"
+}
+
+###
+PUT /api/v1/communities/out
+Host: localhost:9000
+Accept: application/json
+Content-Type: application/json
+Origin: http://localhost:9000
+X-Csrf-Token: 7f7eeddc-4fbc-4c08-bfa4-c6031ffa89ab
+
+{
+    "groupId": "fde292e5-2e1a-4049-88f4-ab57e9249ef0",
+    "applicantId": "6f525500-1832-41b2-80c8-151c466854b8"
+}
+
+###
+PUT /api/v1/communities/remove-admin-status
+Host: localhost:9000
+Accept: application/json
+Content-Type: application/json
+Origin: http://localhost:9000
+X-Csrf-Token: 7f7eeddc-4fbc-4c08-bfa4-c6031ffa89ab
+
+{
+    "groupId": "fde292e5-2e1a-4049-88f4-ab57e9249ef0",
+    "applicantId": "6f525500-1832-41b2-80c8-151c466854b8"
+}
