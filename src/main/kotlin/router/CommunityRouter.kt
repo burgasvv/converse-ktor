@@ -120,13 +120,13 @@ fun Application.configureCommunityRouter() {
                 post("/create") {
                     val communityRequest = call.attributes[AttributeKey<CommunityRequest>("communityRequest")]
                     val communityResponse = communityService.create(communityRequest)
-                    call.respondResource("/api/v1/communities/by-id?communityId=${communityResponse.id}")
+                    call.respondRedirect("/api/v1/communities/by-id?communityId=${communityResponse.id}")
                 }
 
                 post("/update") {
                     val communityRequest = call.attributes[AttributeKey<CommunityRequest>("communityRequest")]
                     val communityResponse = communityService.update(communityRequest)
-                    call.respondResource("/api/v1/communities/by-id?communityId=${communityResponse.id}")
+                    call.respondRedirect("/api/v1/communities/by-id?communityId=${communityResponse.id}")
                 }
 
                 delete("/delete") {

@@ -242,3 +242,42 @@ X-Csrf-Token: 7f7eeddc-4fbc-4c08-bfa4-c6031ffa89ab
 GET /api/v1/chats/by-id?chatId=7a430ac4-3274-4723-b5ce-e17eced40b85
 Host: localhost:9000
 Accept: application/json
+
+
+
+### Community Requests
+
+
+
+###
+POST /api/v1/communities/create
+Host: localhost:9000
+Accept: application/json
+Content-Type: application/json
+Origin: http://localhost:9000
+X-Csrf-Token: 7f7eeddc-4fbc-4c08-bfa4-c6031ffa89ab
+
+{
+    "name": "Community First Test",
+    "description": "Описание сообщества Community First",
+    "opened": true,
+    "adminId": "159514d2-05ec-4386-8df4-6c0c3aa69d8c"
+}
+
+###
+POST /api/v1/communities/update
+Host: localhost:9000
+Accept: application/json
+Content-Type: application/json
+Origin: http://localhost:9000
+X-Csrf-Token: 7f7eeddc-4fbc-4c08-bfa4-c6031ffa89ab
+
+{
+    "id": "fde292e5-2e1a-4049-88f4-ab57e9249ef0",
+    "name": "Community First"
+}
+
+###
+GET /api/v1/communities/by-id?communityId=fde292e5-2e1a-4049-88f4-ab57e9249ef0
+Host: localhost:9000
+Accept: application/json
