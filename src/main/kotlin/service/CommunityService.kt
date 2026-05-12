@@ -7,7 +7,6 @@ import kotlinx.coroutines.flow.toList
 import kotlinx.serialization.json.Json
 import org.burgas.dao.CommunityEntity
 import org.burgas.dao.FileEntity
-import org.burgas.database.ChatIdentityTable
 import org.burgas.database.CommunityIdentityTable
 import org.burgas.database.DatabaseConnection
 import org.burgas.dto.CommunityRequest
@@ -18,14 +17,9 @@ import org.burgas.redis.CacheKey
 import org.burgas.redis.RedisCacheHandler
 import org.burgas.service.dao.*
 import org.jetbrains.exposed.dao.load
-import org.jetbrains.exposed.sql.SizedCollection
+import org.jetbrains.exposed.sql.*
 import org.jetbrains.exposed.sql.SqlExpressionBuilder.eq
-import org.jetbrains.exposed.sql.and
-import org.jetbrains.exposed.sql.deleteWhere
-import org.jetbrains.exposed.sql.insert
-import org.jetbrains.exposed.sql.selectAll
 import org.jetbrains.exposed.sql.transactions.experimental.newSuspendedTransaction
-import org.jetbrains.exposed.sql.update
 import java.sql.Connection
 import java.util.*
 
