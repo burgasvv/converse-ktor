@@ -14,7 +14,7 @@ Accept: application/json
 GET /api/v1/security/login
 Host: localhost:9000
 Accept: text/plain
-Authorization: Basic zagor@gmail.com zagor
+Authorization: Basic burgasvv@gmail.com burgasvv
 
 ###
 GET /api/v1/security/logout

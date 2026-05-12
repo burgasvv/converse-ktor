@@ -118,25 +118,24 @@ fun Application.configureDialogueMessageRouter() {
                     webSocketConnections += this
                     try {
                         val dialogueId = UUID.fromString(call.parameters["dialogueId"])
-                        val dialogueMessageResponses = newSuspendedTransaction(
+                        newSuspendedTransaction(
                             db = DatabaseConnection.postgres, context = Dispatchers.Default, readOnly = true
                         ) {
                             DialogueEntity.findById(dialogueId)!!
                                 .load(DialogueEntity::identities, DialogueEntity::messages)
                                 .messages.map { it.toResponse() }
+                                .forEach { send(Frame.Text(Json.encodeToString(it))) }
                         }
-                        dialogueMessageResponses.forEach { send(Frame.Text(Json.encodeToString(it))) }
                         this.incoming.receiveAsFlow().filterIsInstance<Frame.Text>()
                             .collect { frameText ->
                                 val readText = frameText.readText()
                                 val dialogueMessageResponse = Json.decodeFromString<DialogueMessageResponse>(readText)
                                 if (dialogueMessageResponse.dialogue?.id == dialogueId) {
-                                    send(Frame.Text(readText))
+                                    send(readText)
                                 } else {
-                                    send(Frame.Text("Wrong dialogue for this message"))
+                                    send("Wrong dialogue for this message")
                                 }
                             }
-
                     } finally {
                         webSocketConnections -= this
                     }
@@ -148,7 +147,8 @@ fun Application.configureDialogueMessageRouter() {
                 }
 
                 post("/create") {
-                    val dialogueMessageRequest = call.attributes[AttributeKey<DialogueMessageRequest>("dialogueMessageRequest")]
+                    val dialogueMessageRequest =
+                        call.attributes[AttributeKey<DialogueMessageRequest>("dialogueMessageRequest")]
                     val files = call.attributes[AttributeKey<List<PartData>>("files")]
                     val dialogueMessageResponse = dialogueMessageService.create(dialogueMessageRequest, files)
                     webSocketConnections.forEach { it.send(Frame.Text(Json.encodeToString(dialogueMessageResponse))) }

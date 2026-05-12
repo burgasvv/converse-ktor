@@ -72,6 +72,7 @@ fun Application.configureSecurity() {
             }
         }
     }
+
     install(Sessions) {
         cookie<CsrfToken>("CSRF_TOKEN")
         cookie<AuthSession>("AUTH_SESSION")
