@@ -230,6 +230,7 @@ class ChatService : RedisCacheHandler<ChatEntity>, ReadDao<UUID, ChatEntity, Cha
         context = Dispatchers.Default,
         transactionIsolation = Connection.TRANSACTION_READ_COMMITTED
     ) {
+        entity.files.filter { it.preview }.forEach { it.preview = false }
         val readPart = multiPartData.readPart()!!
         val fileEntity = filesService.createPreview(readPart)
         entity.files = SizedCollection(entity.files + fileEntity)

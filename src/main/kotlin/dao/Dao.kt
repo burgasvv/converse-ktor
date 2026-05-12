@@ -417,10 +417,11 @@ class CommunityEntity(id: EntityID<UUID>) : UUIDEntity(id), Dao, DesignEntity<Co
         this.description = request.description ?: this.description
         this.opened = request.opened ?: this.opened
         if (request.adminId != null) {
-            val newAdmin = CommunityIdentityTable.selectAll()
-                .where { (CommunityIdentityTable.communityId eq request.id!!) and (CommunityIdentityTable.identityId eq request.adminId) }
-                .single()
-            newAdmin[CommunityIdentityTable.admin] = true
+            CommunityIdentityTable.update(where = {
+                (CommunityIdentityTable.communityId eq request.id!!) and (CommunityIdentityTable.identityId eq request.adminId)
+            }) {
+                it[CommunityIdentityTable.admin] = true
+            }
         }
     }
 
