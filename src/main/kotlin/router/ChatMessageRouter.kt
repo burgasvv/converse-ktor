@@ -49,7 +49,16 @@ fun Application.configureChatMessageRouter() {
                 val chatMessageEntity = ChatMessageEntity.findById(chatMessageId)!!
                     .load(ChatMessageEntity::chat, ChatMessageEntity::sender, ChatMessageEntity::files)
 
-                if (chatMessageEntity.sender!!.email == CipherManager.decrypt(authSession.token)) {
+                val sender = chatMessageEntity.sender
+                if (sender != null && sender.email == CipherManager.decrypt(authSession.token)) {
+                    proceed()
+                } else if (
+                    sender == null &&
+                    chatMessageEntity.chat.identities
+                        .map { it.toIdentityInChat(chatMessageEntity.chat.id.value) }
+                        .filter { it.admin!! }
+                        .map { it.email }.contains(CipherManager.decrypt(authSession.token))
+                ) {
                     proceed()
                 } else {
                     throw IllegalArgumentException("Identity not authorized")

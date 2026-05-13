@@ -456,7 +456,7 @@ class PublicationEntity(id: EntityID<UUID>) : UUIDEntity(id), Dao, DesignEntity<
 
     var community by CommunityEntity.referencedOn(PublicationTable.communityId)
     var sender by IdentityEntity.optionalReferencedOn(PublicationTable.senderId)
-    val files by FileEntity
+    var files by FileEntity
         .via(PublicationFileTable.publicationId, PublicationFileTable.fileId)
     val comments by CommentEntity.referrersOn(CommentTable.publicationId)
 
