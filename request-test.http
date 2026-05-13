@@ -93,7 +93,7 @@ Host: localhost:9000
 Accept: application/json
 
 ###
-GET /api/v1/identities/by-id?identityId=8376abf9-9437-4f15-8432-1a7a76f42556
+GET /api/v1/identities/by-id?identityId=6f525500-1832-41b2-80c8-151c466854b8
 Host: localhost:9000
 Accept: application/json
 
@@ -101,7 +101,6 @@ Accept: application/json
 GET /api/v1/identities
 Host: localhost:9000
 Accept: application/json
-Authorization: Basic burgasvv@gmail.com burgasvv
 
 ###
 PUT /api/v1/identities/remove-files?identityId=159514d2-05ec-4386-8df4-6c0c3aa69d8c
@@ -110,7 +109,6 @@ Accept: application/json
 Content-Type: application/json
 Origin: http://localhost:9000
 X-Csrf-Token: 7f7eeddc-4fbc-4c08-bfa4-c6031ffa89ab
-Authorization: Basic burgasvv@gmail.com burgasvv
 
 {
     "fileIds": ["482c4af3-dfa7-44dc-b8a2-341c719ee49f"]
@@ -122,15 +120,13 @@ Host: localhost:9000
 Accept: application/json
 Origin: http://localhost:9000
 X-Csrf-Token: 7f7eeddc-4fbc-4c08-bfa4-c6031ffa89ab
-Authorization: Basic burgasvv@gmail.com burgasvv
 
 ###
-PUT /api/v1/identities/add-contact?identityId=159514d2-05ec-4386-8df4-6c0c3aa69d8c&contactId=8376abf9-9437-4f15-8432-1a7a76f42556
+PUT /api/v1/identities/add-contact?identityId=159514d2-05ec-4386-8df4-6c0c3aa69d8c&contactId=6f525500-1832-41b2-80c8-151c466854b8
 Host: localhost:9000
 Accept: application/json
 Origin: http://localhost:9000
 X-Csrf-Token: 7f7eeddc-4fbc-4c08-bfa4-c6031ffa89ab
-Authorization: Basic burgasvv@gmail.com burgasvv
 
 ###
 PUT /api/v1/identities/remove-contact?identityId=159514d2-05ec-4386-8df4-6c0c3aa69d8c&contactId=8376abf9-9437-4f15-8432-1a7a76f42556
@@ -138,7 +134,6 @@ Host: localhost:9000
 Accept: application/json
 Origin: http://localhost:9000
 X-Csrf-Token: 7f7eeddc-4fbc-4c08-bfa4-c6031ffa89ab
-Authorization: Basic burgasvv@gmail.com burgasvv
 
 
 
@@ -147,7 +142,7 @@ Authorization: Basic burgasvv@gmail.com burgasvv
 
 
 ###
-GET /api/v1/dialogues/by-id?dialogueId=2c7b4569-c9b5-4f13-8e78-9502eee76dfc
+GET /api/v1/dialogues/by-id?dialogueId=623d74a1-0c3a-4e91-a63d-6595835dbc4c
 Host: localhost:9000
 Accept: application/json
 

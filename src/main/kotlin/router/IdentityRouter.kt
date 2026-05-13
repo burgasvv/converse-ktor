@@ -62,11 +62,6 @@ fun Application.configureIdentityRouter() {
 
         route("/api/v1/identities") {
 
-            get("/by-id") {
-                val identityId = UUID.fromString(call.parameters["identityId"])
-                call.respond(HttpStatusCode.OK, identityService.findById(identityId))
-            }
-
             post("/create") {
                 val identityRequest = call.receive(IdentityRequest::class)
                 val identityResponse = identityService.create(identityRequest)
@@ -81,6 +76,11 @@ fun Application.configureIdentityRouter() {
             }
 
             authenticate("basic-auth-session") {
+
+                get("/by-id") {
+                    val identityId = UUID.fromString(call.parameters["identityId"])
+                    call.respond(HttpStatusCode.OK, identityService.findById(identityId))
+                }
 
                 post("/update") {
                     val identityRequest = call.attributes[AttributeKey<IdentityRequest>("identityRequest")]
