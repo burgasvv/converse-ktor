@@ -24,7 +24,7 @@ data class CsrfToken(@Serializable(with = UUIDSerializer::class) val value: UUID
 data class ExceptionResponse(
     val status: String,
     val code: Int,
-    val message: String
+    val message: String?
 )
 
 @Serializable

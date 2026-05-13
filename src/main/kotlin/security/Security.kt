@@ -83,7 +83,7 @@ fun Application.configureSecurity() {
             val exceptionResponse = ExceptionResponse(
                 status = HttpStatusCode.BadRequest.description,
                 code = HttpStatusCode.BadRequest.value,
-                message = cause.localizedMessage
+                message = cause.message
             )
             call.respond(HttpStatusCode.BadRequest, exceptionResponse)
         }
