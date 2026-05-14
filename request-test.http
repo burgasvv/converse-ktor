@@ -77,14 +77,14 @@ X-Csrf-Token: 7f7eeddc-4fbc-4c08-bfa4-c6031ffa89ab
 
 {
     "authority": "USER",
-    "username": "kugrash",
-    "password": "kugrash",
-    "email": "kugrash@gmail.com",
-    "phone": "+79563214556",
+    "username": "danakt",
+    "password": "danakt",
+    "email": "danakt@gmail.com",
+    "phone": "+76534128945",
     "status": true,
-    "firstname": "Куграшов",
-    "lastname": "Даниил",
-    "patronymic": "Сергеевич"
+    "firstname": "Осипкин",
+    "lastname": "Алексей",
+    "patronymic": "Олегович"
 }
 
 ###
