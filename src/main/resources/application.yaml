@@ -25,3 +25,4 @@ ktor:
       - org.burgas.router.ChatMessageRouterKt.configureChatMessageRouter
       - org.burgas.router.CommunityRouterKt.configureCommunityRouter
       - org.burgas.router.PublicationRouterKt.configurePublicationRouter
+      - org.burgas.router.CommentRouterKt.configureCommentRouter

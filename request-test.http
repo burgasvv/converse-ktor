@@ -326,3 +326,25 @@ X-Csrf-Token: 7f7eeddc-4fbc-4c08-bfa4-c6031ffa89ab
     "groupId": "fde292e5-2e1a-4049-88f4-ab57e9249ef0",
     "applicantId": "6f525500-1832-41b2-80c8-151c466854b8"
 }
+
+
+
+### Publication Requests
+
+
+
+###
+GET /api/v1/publications/by-id?publicationId=f1481876-6d23-4a87-9deb-567aa3920795
+Host: localhost:9000
+Accept: application/json
+
+
+
+### Comment Requests
+
+
+
+###
+GET /api/v1/comments/by-id?commentId=eb2500e0-7845-4b0f-8b52-7006e1872ccd
+Host: localhost:9000
+Accept: application/json
