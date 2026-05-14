@@ -20,6 +20,10 @@ kotlin {
 
 repositories {
     mavenCentral()
+    maven {
+        url = uri("https://packages.confluent.io/maven")
+        name = "confluence"
+    }
 }
 
 dependencies {
@@ -44,6 +48,8 @@ dependencies {
     implementation("org.mindrot:jbcrypt:0.4")
     implementation("io.ktor:ktor-server-auth:3.4.0")
     implementation("io.ktor:ktor-server-websockets:3.4.0")
+    implementation("io.github.flaxoos:ktor-server-kafka:2.2.1")
+    implementation("io.ktor:ktor-client-core:3.4.0")
 
     testImplementation(kotlin("test"))
     testImplementation(ktorLibs.server.testHost)

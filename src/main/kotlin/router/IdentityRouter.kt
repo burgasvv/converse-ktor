@@ -1,5 +1,7 @@
 package org.burgas.router
 
+import io.github.flaxoos.ktor.server.plugins.kafka.components.toRecord
+import io.github.flaxoos.ktor.server.plugins.kafka.kafkaProducer
 import io.ktor.http.*
 import io.ktor.server.application.*
 import io.ktor.server.auth.*
@@ -8,6 +10,7 @@ import io.ktor.server.response.*
 import io.ktor.server.routing.*
 import io.ktor.server.sessions.*
 import io.ktor.util.*
+import org.apache.kafka.clients.producer.ProducerRecord
 import org.burgas.dto.AuthSession
 import org.burgas.dto.FileRequest
 import org.burgas.dto.IdentityRequest
@@ -63,7 +66,9 @@ fun Application.configureIdentityRouter() {
 
             post("/create") {
                 val identityRequest = call.receive(IdentityRequest::class)
-                identityService.create(identityRequest)
+                val identityResponse = identityService.create(identityRequest)
+                val producerRecord = ProducerRecord("identity-topic", "identity-create", identityResponse.toRecord())
+                kafkaProducer!!.send(producerRecord).get()
                 call.respond(HttpStatusCode.OK)
             }
 
