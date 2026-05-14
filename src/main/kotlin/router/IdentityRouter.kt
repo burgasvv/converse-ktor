@@ -6,8 +6,7 @@ import io.ktor.server.auth.*
 import io.ktor.server.request.*
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
-import io.ktor.server.sessions.get
-import io.ktor.server.sessions.sessions
+import io.ktor.server.sessions.*
 import io.ktor.util.*
 import org.burgas.dto.AuthSession
 import org.burgas.dto.FileRequest
@@ -64,8 +63,8 @@ fun Application.configureIdentityRouter() {
 
             post("/create") {
                 val identityRequest = call.receive(IdentityRequest::class)
-                val identityResponse = identityService.create(identityRequest)
-                call.respondRedirect("/api/v1/identities/by-id?identityId=${identityResponse.id}")
+                identityService.create(identityRequest)
+                call.respond(HttpStatusCode.OK)
             }
 
             authenticate("basic-auth-admin") {
